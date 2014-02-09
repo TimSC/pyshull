@@ -169,12 +169,33 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 	else:
 		ang2 = TriangleAngFromLengths(pts, distCache, *triOrdered2)
 		angleCache[triOrdered2] = ang2
-	
-	if ang1 + ang2 > math.pi:
-		#print "Flip required"
+
+	angTotal = ang1 + ang2
+	if angTotal > math.pi:
+		#print "Flip required", angTotal, triOrdered1, triOrdered2
 
 		flipTri1 = (triOrdered1[2], triOrdered2[2], triOrdered1[1])
 		flipTri2 = (triOrdered2[2], triOrdered1[2], triOrdered1[0])
+
+		if flipTri1 in angleCache:
+			flipAng1 = angleCache[flipTri1]
+		else:
+			flipAng1 = TriangleAngFromLengths(pts, distCache, *flipTri1)
+			angleCache[flipTri1] = flipAng1
+
+		if flipTri2 in angleCache:
+			flipAng2 = angleCache[flipTri2]
+		else:
+			flipAng2 = TriangleAngFromLengths(pts, distCache, *flipTri2)
+			angleCache[flipTri2] = flipAng2
+
+		flipAngTotal = flipAng1 + flipAng2
+		#print "Angle when flipped", flipAngTotal
+		
+		if flipAngTotal >= angTotal:
+			#No improvement when flipped, so abort flip
+			return False, triOrdered1, triOrdered2
+
 		#print "flipped", flipTri1, flipTri2
 		return True, flipTri1, flipTri2
 
