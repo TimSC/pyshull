@@ -165,7 +165,7 @@ def HasCommonEdge(tri1, tri2):
 	count += tri1[0] in tri2
 	count += tri1[1] in tri2
 	count += tri1[2] in tri2
-	if count == 0:
+	if count < 2:
 		return None
 
 	edgeInd1 = [(0,1,2),(1,2,0),(2,0,1)]
@@ -185,6 +185,9 @@ def FlipTriangles(pts, triangles):
 		count = 0
 		for i in range(len(triangles)):
 			for j in range(len(triangles)):
+				if j <= i:
+					continue
+
 				tri1 = triangles[i]
 				tri2 = triangles[j]
 				commonEdge = HasCommonEdge(tri1, tri2)
