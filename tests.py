@@ -1,13 +1,19 @@
 
 import matplotlib.pyplot as plt
-import pyshull
+import pyshull, sys, time
 import numpy as np
 
 if __name__ == "__main__":
 	
-	pts = np.random.rand(50, 2)
+	n = 50
+	if len(sys.argv) >= 2:
+		n = int(sys.argv[1])
 
+	pts = np.random.rand(n, 2)
+
+	startTime = time.time()
 	triangles = pyshull.PySHull(pts)
+	print "Processed", n, "points in", time.time() - startTime, "sec"
 
 	for tri in triangles:
 		tri2 = list(tri[:])
