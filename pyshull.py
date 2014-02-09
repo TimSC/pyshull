@@ -222,6 +222,7 @@ def FlipTriangles(pts, triangles):
 	#print sharedEdges
 	angleCache = {}
 	distCache = {}
+	previousConfigurations = [triangles[:]]
 
 	running = True
 	while running:
@@ -230,6 +231,7 @@ def FlipTriangles(pts, triangles):
 		sharedEdgeKeys = sharedEdges.keys()
 
 		count = 0
+
 		for edgeKey in sharedEdgeKeys:
 			edge = sharedEdges[edgeKey][:]
 			if len(edge) < 2:
@@ -262,6 +264,14 @@ def FlipTriangles(pts, triangles):
 				AddTriangleToCommonEdges(sharedEdges, triangles, edge[1])
 
 				count += 1
+
+		if count > 0 and triangles in previousConfigurations:
+			#Prevent an infinite loop of triangle flipping
+			exception = Exception("Cannot find delaunay arrangement")
+			exception.triangles = triangles
+			raise exception
+
+		previousConfigurations.append(triangles)
 
 		if count == 0:
 			running = False
