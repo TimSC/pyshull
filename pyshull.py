@@ -4,6 +4,16 @@ def CalcDist(a, b):
 	#Pythagorean theorem
 	return ((a[0] - b[0]) ** 2. + (a[1] - b[1]) ** 2.) ** 0.5
 
+def CalcDistCached(pts, a, b, distCache):
+	ptIds = (a, b)
+	distId = min(ptIds), max(ptIds)
+	if distId in distCache:
+		return distCache[distId]
+	
+	dist = CalcDist(pts[a], pts[b])
+	distCache[distId] = dist
+	return dist
+
 def RadialDistance(pts, seedIndex):
 	dists = []
 	seedPt = pts[seedIndex]
@@ -140,15 +150,25 @@ def CosineRuleAngle(a, b, c):
 	y = (2.*b*c)
 	return math.acos(x/y)
 
-def TriangleAngFromLengths(pt1, pt2, pt3):
-	a = CalcDist(pt1, pt2) #Length opposite the angle of interest
-	b = CalcDist(pt2, pt3)
-	c = CalcDist(pt3, pt1)
+def TriangleAngFromLengths(pts, distCache, pt1, pt2, pt3):
+
+	a = CalcDistCached(pts, pt1, pt2, distCache) #Length opposite the angle of interest
+	b = CalcDistCached(pts, pt2, pt3, distCache)
+	c = CalcDistCached(pts, pt3, pt1, distCache)
 	return CosineRuleAngle(a, b, c)
 
-def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2):
-	ang1 = TriangleAngFromLengths(pts[triOrdered1[0]], pts[triOrdered1[1]], pts[triOrdered1[2]])
-	ang2 = TriangleAngFromLengths(pts[triOrdered2[0]], pts[triOrdered2[1]], pts[triOrdered2[2]])
+def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache):
+	if triOrdered1 in angleCache:
+		ang1 = angleCache[triOrdered1]
+	else:
+		ang1 = TriangleAngFromLengths(pts, distCache, *triOrdered1)
+		angleCache[triOrdered1] = ang1
+
+	if triOrdered2 in angleCache:
+		ang2 = angleCache[triOrdered2]
+	else:
+		ang2 = TriangleAngFromLengths(pts, distCache, *triOrdered2)
+		angleCache[triOrdered2] = ang2
 	
 	if ang1 + ang2 > math.pi:
 		#print "Flip required"
@@ -200,6 +220,8 @@ def FlipTriangles(pts, triangles):
 		AddTriangleToCommonEdges(sharedEdges, triangles, triNum)
 
 	#print sharedEdges
+	angleCache = {}
+	distCache = {}
 
 	running = True
 	while running:
@@ -227,7 +249,7 @@ def FlipTriangles(pts, triangles):
 			#print triOrdered1, triOrdered2
 
 			#Check if triangle flip is needed
-			flipNeeded, ft1, ft2 = CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2)
+			flipNeeded, ft1, ft2 = CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache)
 			
 			if flipNeeded:
 				RemoveTriangleFromCommonEdges(sharedEdges, triangles, edge[0])

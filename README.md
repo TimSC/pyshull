@@ -3,6 +3,8 @@ pyshull
 
 S-Hull Delaunay triangulation implemented in pure Python
 
+This implementation is 50-100 times slower than the reported results of S-HULL implemented in C.
+
 Copyright (c) 2014, Tim Sheerman-Chase
 All rights reserved.
 
