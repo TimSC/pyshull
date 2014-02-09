@@ -1,3 +1,4 @@
+import math
 
 def CalcDist(a, b):
 	#Pythagorean theorem
@@ -134,6 +135,75 @@ def FormTriangles(pts, seedTriangle, orderToAddPts):
 		hull = newHull
 	return hull, triangles
 
+def CosineRuleAngle(a, b, c):
+	x = ((b**2.) + (c**2.) - (a**2.))
+	y = (2.*b*c)
+	return math.acos(x/y)
+
+def TriangleAngFromLengths(pt1, pt2, pt3):
+	a = CalcDist(pt1, pt2) #Length opposite the angle of interest
+	b = CalcDist(pt2, pt3)
+	c = CalcDist(pt3, pt1)
+	return CosineRuleAngle(a, b, c)
+
+def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2):
+	ang1 = TriangleAngFromLengths(pts[triOrdered1[0]], pts[triOrdered1[1]], pts[triOrdered1[2]])
+	ang2 = TriangleAngFromLengths(pts[triOrdered2[0]], pts[triOrdered2[1]], pts[triOrdered2[2]])
+	
+	if ang1 + ang2 > math.pi:
+		#print "Flip required"
+
+		flipTri1 = (triOrdered1[2], triOrdered2[2], triOrdered1[1])
+		flipTri2 = (triOrdered2[2], triOrdered1[2], triOrdered1[0])
+		#print "flipped", flipTri1, flipTri2
+		return True, flipTri1, flipTri2
+
+	return False, triOrdered1, triOrdered2
+
+def HasCommonEdge(tri1, tri2):
+	edgeInd1 = [(0,1,2),(1,2,0),(2,0,1)]
+	edgeInd2 = [(2,1,0),(1,0,2),(0,2,1)]
+	for ei1 in edgeInd1:
+		pt1 = tri1[ei1[0]]
+		pt2 = tri1[ei1[1]]
+		for ei2 in edgeInd2:
+			if pt1 == tri2[ei2[0]] and pt2 == tri2[ei2[1]]:
+				return (ei1, ei2)
+	return None
+
+def FlipTriangles(pts, triangles):
+
+	running = True
+	while running:
+		count = 0
+		for i in range(len(triangles)):
+			for j in range(len(triangles)):
+				tri1 = triangles[i]
+				tri2 = triangles[j]
+				commonEdge = HasCommonEdge(tri1, tri2)
+				if commonEdge is None:
+					continue
+				triInd1, triInd2 = commonEdge
+				#print "original ind", tri1, tri2
+
+				#Reorder nodes so the common edge is the first to verticies
+				triOrdered1 = (tri1[triInd1[0]], tri1[triInd1[1]], tri1[triInd1[2]])
+				triOrdered2 = (tri2[triInd2[0]], tri2[triInd2[1]], tri2[triInd2[2]])
+				#print triOrdered1, triOrdered2
+
+				#Check if triangle flip is needed
+				flipNeeded, ft1, ft2 = CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2)
+			
+				if flipNeeded:
+					triangles[i] = ft1
+					triangles[j] = ft2
+					count += 1
+
+		if count == 0:
+			running = False
+
+	return triangles
+
 def PySHull(pts):
 	#S-hull: a fast sweep-hull routine for Delaunay triangulation by David Sinclair
 	#http://www.s-hull.org/
@@ -181,7 +251,7 @@ def PySHull(pts):
 
 	#Flip adjacent pairs of triangles to meet Delaunay condition
 	#https://en.wikipedia.org/wiki/Delaunay_triangulation#Visual_Delaunay_definition:_Flipping
-	#TODO
+	delaunayTris = FlipTriangles(pts, triangles)
 	
-	return triangles
+	return delaunayTris
 
