@@ -161,6 +161,13 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2):
 	return False, triOrdered1, triOrdered2
 
 def HasCommonEdge(tri1, tri2):
+	count = 0
+	count += tri1[0] in tri2
+	count += tri1[1] in tri2
+	count += tri1[2] in tri2
+	if count == 0:
+		return None
+
 	edgeInd1 = [(0,1,2),(1,2,0),(2,0,1)]
 	edgeInd2 = [(2,1,0),(1,0,2),(0,2,1)]
 	for ei1 in edgeInd1:
