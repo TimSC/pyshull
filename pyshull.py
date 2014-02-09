@@ -161,12 +161,6 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2):
 	return False, triOrdered1, triOrdered2
 
 def HasCommonEdge(tri1, tri2):
-	count = 0
-	count += tri1[0] in tri2
-	count += tri1[1] in tri2
-	count += tri1[2] in tri2
-	if count < 2:
-		return None
 
 	edgeInd1 = [(0,1,2),(1,2,0),(2,0,1)]
 	edgeInd2 = [(2,1,0),(1,0,2),(0,2,1)]
@@ -178,36 +172,74 @@ def HasCommonEdge(tri1, tri2):
 				return (ei1, ei2)
 	return None
 
+def RemoveTriangleFromCommonEdges(sharedEdges, triangles, triNum):
+
+	tri = triangles[triNum]
+	edgeInds = [(0,1,2),(1,2,0),(2,0,1)]
+	for edgeInd in edgeInds:
+		edge = (tri[edgeInd[0]], tri[edgeInd[1]])
+		edgeId = min(edge), max(edge)
+		sharedEdges[edgeId].remove(triNum)	
+
+def AddTriangleToCommonEdges(sharedEdges, triangles, triNum):
+
+	tri = triangles[triNum]
+	edgeInds = [(0,1,2),(1,2,0),(2,0,1)]
+	for edgeInd in edgeInds:
+		edge = (tri[edgeInd[0]], tri[edgeInd[1]])
+		edgeId = min(edge), max(edge)
+		if edgeId not in sharedEdges:
+			sharedEdges[edgeId] = []
+		sharedEdges[edgeId].append(triNum)
+
 def FlipTriangles(pts, triangles):
+
+	#Catalog shared edges
+	sharedEdges = {}
+	for triNum, tri in enumerate(triangles):
+		AddTriangleToCommonEdges(sharedEdges, triangles, triNum)
+
+	#print sharedEdges
 
 	running = True
 	while running:
+
+		#Since we are modifying the edge structure, take a static copy of keys
+		sharedEdgeKeys = sharedEdges.keys()
+
 		count = 0
-		for i in range(len(triangles)):
-			for j in range(len(triangles)):
-				if j <= i:
-					continue
+		for edgeKey in sharedEdgeKeys:
+			edge = sharedEdges[edgeKey][:]
+			if len(edge) < 2:
+				continue
 
-				tri1 = triangles[i]
-				tri2 = triangles[j]
-				commonEdge = HasCommonEdge(tri1, tri2)
-				if commonEdge is None:
-					continue
-				triInd1, triInd2 = commonEdge
-				#print "original ind", tri1, tri2
+			tri1 = triangles[edge[0]]
+			tri2 = triangles[edge[1]]
+			commonEdge = HasCommonEdge(tri1, tri2)
+			if commonEdge is None:
+				raise Exception("Expected common edge")
+			triInd1, triInd2 = commonEdge
+			#print "original ind", tri1, tri2
 
-				#Reorder nodes so the common edge is the first to verticies
-				triOrdered1 = (tri1[triInd1[0]], tri1[triInd1[1]], tri1[triInd1[2]])
-				triOrdered2 = (tri2[triInd2[0]], tri2[triInd2[1]], tri2[triInd2[2]])
-				#print triOrdered1, triOrdered2
+			#Reorder nodes so the common edge is the first two verticies
+			triOrdered1 = (tri1[triInd1[0]], tri1[triInd1[1]], tri1[triInd1[2]])
+			triOrdered2 = (tri2[triInd2[0]], tri2[triInd2[1]], tri2[triInd2[2]])
+			#print triOrdered1, triOrdered2
 
-				#Check if triangle flip is needed
-				flipNeeded, ft1, ft2 = CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2)
+			#Check if triangle flip is needed
+			flipNeeded, ft1, ft2 = CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2)
 			
-				if flipNeeded:
-					triangles[i] = ft1
-					triangles[j] = ft2
-					count += 1
+			if flipNeeded:
+				RemoveTriangleFromCommonEdges(sharedEdges, triangles, edge[0])
+				RemoveTriangleFromCommonEdges(sharedEdges, triangles, edge[1])
+
+				triangles[edge[0]] = ft1
+				triangles[edge[1]] = ft2
+
+				AddTriangleToCommonEdges(sharedEdges, triangles, edge[0])
+				AddTriangleToCommonEdges(sharedEdges, triangles, edge[1])
+
+				count += 1
 
 		if count == 0:
 			running = False
