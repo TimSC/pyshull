@@ -193,6 +193,7 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		#print "Angle when flipped", flipAngTotal
 		
 		if flipAngTotal >= angTotal:
+			#print "Abort flip"
 			#No improvement when flipped, so abort flip
 			return False, triOrdered1, triOrdered2
 
@@ -287,12 +288,13 @@ def FlipTriangles(pts, triangles):
 				count += 1
 
 		if count > 0 and triangles in previousConfigurations:
+
 			#Prevent an infinite loop of triangle flipping
 			exception = Exception("Cannot find delaunay arrangement")
 			exception.triangles = triangles
 			raise exception
 
-		previousConfigurations.append(triangles)
+		previousConfigurations.append(triangles[:])
 
 		if count == 0:
 			running = False
