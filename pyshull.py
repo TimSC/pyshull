@@ -362,6 +362,46 @@ def RemoveDuplicatePoints(pts):
 	filteredPts = set([tuple(pt) for pt in pts])
 	return list(filteredPts)
 
+def HeronsFormula(pts, tri):
+
+	a = CalcDist(pts[tri[0]], pts[tri[1]])
+	b = CalcDist(pts[tri[1]], pts[tri[2]])
+	c = CalcDist(pts[tri[2]], pts[tri[0]])
+
+	#https://en.wikipedia.org/wiki/Heron%27s_formula#Numerical_stability
+	x1 = (a+(b+c))
+	x2 = (c-(a-b))
+	x3 = (c+(a-b))
+	x4 = (a+(b-c))
+	x = x1*x2*x3*x4
+	if x < 0.:
+		return 0.
+	area = 0.25 * (x ** 0.5)
+	return area
+
+def RemoveZeroAreaTris(pts, triangles):
+	filteredtris = []
+	angleCache = {}
+
+	for tri in triangles:
+		area = HeronsFormula(pts, tri)
+
+		ang1 = CalcTriangleAng(pts, angleCache, tri[2], tri[0], tri[1])
+		ang2 = CalcTriangleAng(pts, angleCache, tri[0], tri[1], tri[2])
+		ang3 = CalcTriangleAng(pts, angleCache, tri[1], tri[2], tri[0])
+	
+		if ang1 == 0. or ang2 == 0. or ang3 == 0.:
+			continue
+
+		if ang1 == math.pi or ang2 == math.pi or ang3 == math.pi:
+			continue
+
+		if area == 0.:
+			continue
+
+		filteredtris.append(tri)
+	return filteredtris
+
 def PySHull(pts):
 	#S-hull: a fast sweep-hull routine for Delaunay triangulation by David Sinclair
 	#http://www.s-hull.org/
@@ -413,5 +453,8 @@ def PySHull(pts):
 	#https://en.wikipedia.org/wiki/Delaunay_triangulation#Visual_Delaunay_definition:_Flipping
 	delaunayTris = FlipTriangles(pts, triangles)
 	
-	return delaunayTris
+	#Remove zero area triangles
+	filteredTris = RemoveZeroAreaTris(pts, delaunayTris)
+
+	return filteredTris
 

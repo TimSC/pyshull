@@ -8,7 +8,8 @@ def CompareTriangleLists(triangles1, triangles2):
 	listOfTuples1 = [tuple(tri) for tri in triangles1]
 	listOfTuples2 = [tuple(tri) for tri in triangles2]
 	count = 0
-	for tri in listOfTuples1:
+	probIndex = []
+	for triNum, tri in enumerate(listOfTuples1):
 		match = tri in listOfTuples2
 		if not match:
 			tri2 = (tri[1],tri[2],tri[0])
@@ -28,7 +29,23 @@ def CompareTriangleLists(triangles1, triangles2):
 
 		if match:
 			count += 1
-	return float(count) / float(len(triangles1))
+		else:
+			probIndex.append(triNum)
+	return float(count) / float(len(triangles1)), probIndex
+
+def HeronsFormula(pts, tri):
+
+	a = pyshull.CalcDist(pts[tri[0]], pts[tri[1]])
+	b = pyshull.CalcDist(pts[tri[1]], pts[tri[2]])
+	c = pyshull.CalcDist(pts[tri[2]], pts[tri[0]])
+
+	#https://en.wikipedia.org/wiki/Heron%27s_formula#Numerical_stability
+	x1 = (a+(b+c))
+	x2 = (c-(a-b))
+	x3 = (c+(a-b))
+	x4 = (a+(b-c))
+	area = 0.25 * ((x1*x2*x3*x4) ** 0.5)
+	return area
 
 if __name__ == "__main__":
 
@@ -62,28 +79,49 @@ if __name__ == "__main__":
 		startTime = time.time()
 		triangles2 = spatial.Delaunay(pts).simplices
 		print "scipy Processed", n, "points in", time.time() - startTime, "sec"
+		
+		for tri in triangles:
+			area = HeronsFormula(pts, tri)
+			if area == 0.:
+				print "Problem: Zero size triangle"
+				pickle.dump(pts, open("problem{0}.dat".format(problemCount),"wb"), protocol=-1)
+				problemCount += 1
 
-		print "Problems found", problemCount
-		
 		#print triangles
-		compare = CompareTriangleLists(triangles, triangles2)
+		compare, probIndex = CompareTriangleLists(triangles, triangles2)
+		compare2, probIndex2 = CompareTriangleLists(triangles2, triangles)
 		
-		if compare < 1.:
-			print "Problem detected", compare
+		if compare + compare2 < 2.:
+			print "Problem detected", compare, compare2, len(triangles), len(triangles2)
 			plt.clf()
 			plt.subplot(211)
-			for tri in triangles:
+			plt.xlim([-0.1, 1.1])
+			plt.ylim([-0.1, 1.1])
+			for triNum, tri in enumerate(triangles):
 				tri2 = list(tri[:])
 				tri2.append(tri[0])
-				plt.plot(pts[tri2,0], pts[tri2,1])
+				col = 'g-'
+				if triNum in probIndex: 
+					print "p1", triNum, tri, HeronsFormula(pts, tri)
+					#print "z1", pts[tri2,0], pts[tri2,1]
+					col = "r-"
+				plt.plot(pts[tri2,0], pts[tri2,1], col)
 
 			plt.plot(pts[:,0], pts[:,1], 'x')
 
 			plt.subplot(212)
-			for tri in triangles2:
+			plt.xlim([-0.1, 1.1])
+			plt.ylim([-0.1, 1.1])
+			for triNum, tri in enumerate(triangles2):
 				tri2 = list(tri[:])
 				tri2.append(tri[0])
-				plt.plot(pts[tri2,0], pts[tri2,1])
+				col = 'g-'
+				if triNum in probIndex2: 
+					print "p2", triNum, tri, HeronsFormula(pts, tri)
+					#print "z2", pts[tri2,0], pts[tri2,1]
+					col = "r-"
+
+				plt.plot(pts[tri2,0], pts[tri2,1], col)
 
 			plt.plot(pts[:,0], pts[:,1], 'x')
 			plt.savefig("problem{0}.svg".format(problemCount))
@@ -91,4 +129,6 @@ if __name__ == "__main__":
 			pickle.dump(pts, open("problem{0}.dat".format(problemCount),"wb"), protocol=-1)
 
 			problemCount += 1
+
+		print "Problems found", problemCount
 
