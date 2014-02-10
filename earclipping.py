@@ -269,6 +269,7 @@ def EarClipping(poly, holes):
 if __name__=="__main__":
 	import matplotlib.pyplot as plt
 	import numpy as np
+	import time
 	#pts = [(2.,1.),(4.,5.),(2.,0.),(0.,5.)]
 
 	#Polygon is defined in an anti-clockwise order
@@ -279,13 +280,17 @@ if __name__=="__main__":
 		[(3.25,3.25),(3.25,3.75),(3.75,3.75),(3.75,3.25)],
 		[(2.1,2.5),(2.5,2.9),(2.9,2.5),(2.5,2.1),]]
 
+	startTime = time.time()
 	pts, triangles = EarClipping(outer, holes)
+	print "Ear clipping done in", time.time() - startTime, "sec"
 
 	if 1:
 		#Use delaunay flipping to improve mesh quality
 		import pyshull
 		revtris = [tri[::-1] for tri in triangles]
+		startTime = time.time()
 		triangles = pyshull.FlipTriangles(pts, revtris)
+		print "Mesh flipping done in", time.time() - startTime, "sec"
 
 	print triangles
 
