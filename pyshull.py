@@ -106,29 +106,6 @@ def FormTriangles(pts, seedTriangle, orderToAddPts):
 				visInd.append(hInd)
 
 		if len(visInd) == 0:
-			print visList
-			import matplotlib.pyplot as plt
-			import numpy as np
-			plt.clf()
-			ptsArr = np.array(pts)
-			plt.plot(ptsArr[:,0],ptsArr[:,1],'x')
-
-			#for tri in triangles:
-			#	triTmp = list(tri[:])
-			#	triTmp.append(tri[0])
-			#	plt.plot(ptsArr[triTmp,0],ptsArr[triTmp,1],'r-')
-
-			#hIndTemp = hull[:]
-			#hIndTemp.append(hull[0])
-			#plt.plot(ptsArr[hIndTemp,0],ptsArr[hIndTemp,1],'g-')
-
-			triTmp = list(seedTriangle[:])
-			triTmp.append(seedTriangle[0])
-			plt.plot(ptsArr[triTmp,0],ptsArr[triTmp,1],'y-')
-
-			plt.plot(ptsArr[ptToAdd,0],ptsArr[ptToAdd,1],'o')
-			plt.show()
-
 			raise Exception("No hull sides visible")
 
 		#Check for range of sides that are visible
@@ -240,16 +217,6 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		if debugMode:
 			rhCheck1 = RightHandedCheck(pts, *flipTri1)
 			rhCheck2 = RightHandedCheck(pts, *flipTri2)
-
-		#if rhCheck1 < 0. or rhCheck2 < 0.:
-		#	import matplotlib.pyplot as plt
-		#	import numpy as np
-		#	ptsArr = np.array(pts)
-		#	plt.plot(ptsArr[triOrdered1,0], ptsArr[triOrdered1,1], 'r--')
-		#	plt.plot(ptsArr[triOrdered2,0], ptsArr[triOrdered2,1], 'b--')
-		#	plt.xlim([-0.1,1.1])
-		#	plt.ylim([-0.1,1.1])
-		#	plt.show()
 
 		#Ensure they are right handed
 		if rhCheck1 < 0.:
