@@ -66,14 +66,15 @@ if __name__=="__main__":
 		print err
 		triangles = err.triangles
 
-	#Flip pairs of triangles while avoiding overlaps
-	for i in range(len(triangles)):
-		for j in range(len(triangles)):
-			if j >= i: continue
-			flipable = CheckIfFlippable(pts, triangles, i, j)
-			#print i, j, flipable
-			if flipable:
-				PerformFlipOfTriPair(pts, triangles, i, j)
+	if 1:
+		#Flip pairs of triangles while avoiding overlaps
+		for i in range(len(triangles)):
+			for j in range(len(triangles)):
+				if j >= i: continue
+				flipable = CheckIfFlippable(pts, triangles, i, j)
+				#print i, j, flipable
+				if flipable:
+					PerformFlipOfTriPair(pts, triangles, i, j)
 
 	#triangles = pyshull.FlipTriangles(pts, triangles)
 	#triangles = spatial.Delaunay(pts).simplices
