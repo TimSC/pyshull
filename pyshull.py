@@ -148,7 +148,11 @@ def FormTriangles(pts, seedTriangle, orderToAddPts):
 def CosineRuleAngle(a, b, c):
 	x = ((b**2.) + (c**2.) - (a**2.))
 	y = (2.*b*c)
-	return math.acos(x/y)
+	ratio = x/y
+	#print "ratio", ratio, x, y
+	if ratio >= 1. or ratio <= -1:
+		return 0. #Cosine rule only supports up to this angle anyway
+	return math.acos(ratio)
 
 def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
 	#Angle is computed on pt3. pt1 and pt2 define the side opposite the angle
@@ -161,36 +165,37 @@ def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
 	return CosineRuleAngle(a, b, c)
 
 def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache):
-	#print triOrdered1
-	#print triOrdered2
+
+	if RightHandedCheck(pts, *triOrdered1) < 0.:
+		raise RuntimeError("Left hand triangle detected", triOrdered1)
+	if RightHandedCheck(pts, *triOrdered2) < 0.:
+		raise RuntimeError("Left hand triangle detected", triOrdered2)
+	#print "triOrdered1", triOrdered1
+	#print "triOrdered2", triOrdered2
 	quad = triOrdered1[0], triOrdered1[2], triOrdered2[2], triOrdered2[1]
 	#print "quad", quad
 
-	t1 = CalcTriangleAng(pts, distCache, quad[0], quad[2], quad[1])
-	t3 = CalcTriangleAng(pts, distCache, quad[2], quad[0], quad[3])
+	try:
+		t1 = CalcTriangleAng(pts, distCache, quad[0], quad[2], quad[1])
+		t3 = CalcTriangleAng(pts, distCache, quad[2], quad[0], quad[3])
+	except RuntimeError:
+		return False, triOrdered1, triOrdered2
 
 	angTotal = t1 + t3
 	#print ang1, ang2, angTotal
 	if angTotal > math.pi:
 		#print "Flip possibly required", angTotal, triOrdered1, triOrdered2
-		
-		t2 = CalcTriangleAng(pts, distCache, quad[1], quad[3], quad[2])
-		t4 = CalcTriangleAng(pts, distCache, quad[3], quad[1], quad[0])
+		try:
+			t2 = CalcTriangleAng(pts, distCache, quad[1], quad[3], quad[2])
+			t4 = CalcTriangleAng(pts, distCache, quad[3], quad[1], quad[0])
+		except RuntimeError:
+			return False, triOrdered1, triOrdered2
 		#t1 + t2 + t3 + t4 == 2 * math.pi
 		#print t1, t2, t3, t4
 
-		flipTri1 = (triOrdered1[2], triOrdered1[0], triOrdered2[1])
-		flipTri2 = (triOrdered2[1], triOrdered1[1], triOrdered1[2])
-
-		#if RightHandedCheck(pts, *flipTri1) < 0.:
-		#	flipTri1 = (flipTri1[0], flipTri1[2], flipTri1[1])
-		#if RightHandedCheck(pts, *flipTri2) < 0.:
-		#	flipTri2 = (flipTri2[0], flipTri2[2], flipTri2[1])
-
-		#Ensure they are right handed
-		#print flipTri1, RightHandedCheck(pts, *flipTri1)
-		#print flipTri2, RightHandedCheck(pts, *flipTri2)
-
+		flipTri1 = (triOrdered2[1], triOrdered1[2], triOrdered1[0])
+		flipTri2 = (triOrdered1[2], triOrdered2[1], triOrdered1[1])
+		#print flipTri1, flipTri2
 		flipAngTotal = t2 + t4
 		#print "Angle when flipped", flipAngTotal
 				
@@ -199,13 +204,29 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 			#No improvement when flipped, so abort flip
 			return False, triOrdered1, triOrdered2
 
-		#Prevent flip creating an overlap
-		#rh1 = RightHandedCheck(pts, flipTri1[1], flipTri1[2], flipTri1[0])
-		#rh2 = RightHandedCheck(pts, flipTri2[1], flipTri2[2], flipTri2[0])
-		#if rh1 <= 0. or rh2 <= 0.:
-		#	return False, triOrdered1, triOrdered2
+		#print flipTri1, RightHandedCheck(pts, *flipTri1)
+		#print flipTri2, RightHandedCheck(pts, *flipTri2)
 
-		print "flipped", flipTri1, flipTri2
+		rhCheck1 = RightHandedCheck(pts, *flipTri1)
+		rhCheck2 = RightHandedCheck(pts, *flipTri2)
+
+		#if rhCheck1 < 0. or rhCheck2 < 0.:
+		#	import matplotlib.pyplot as plt
+		#	import numpy as np
+		#	ptsArr = np.array(pts)
+		#	plt.plot(ptsArr[triOrdered1,0], ptsArr[triOrdered1,1], 'r--')
+		#	plt.plot(ptsArr[triOrdered2,0], ptsArr[triOrdered2,1], 'b--')
+		#	plt.xlim([-0.1,1.1])
+		#	plt.ylim([-0.1,1.1])
+		#	plt.show()
+
+		#Ensure they are right handed
+		if rhCheck1 < 0.:
+			raise RuntimeError("Left hand triangle detected", flipTri1)
+		if rhCheck2 < 0.:
+			raise RuntimeError("Left hand triangle detected", flipTri2)
+	
+		#print "flipped", flipTri1, flipTri2
 		return True, flipTri1, flipTri2
 
 	return False, triOrdered1, triOrdered2
@@ -271,6 +292,7 @@ def FlipTriangles(pts, triangles):
 			tri2 = triangles[edge[1]]
 			commonEdge = HasCommonEdge(tri1, tri2)
 			if commonEdge is None:
+				print "err", tri1, tri2
 				raise Exception("Expected common edge")
 			triInd1, triInd2 = commonEdge
 			#print "original ind", tri1, tri2

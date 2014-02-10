@@ -66,6 +66,7 @@ if __name__ == "__main__":
 		
 		if compare < 1.:
 			print "Problem detected", compare
+			plt.clf()
 			plt.subplot(211)
 			for tri in triangles:
 				tri2 = list(tri[:])
@@ -81,7 +82,7 @@ if __name__ == "__main__":
 				plt.plot(pts[tri2,0], pts[tri2,1])
 
 			plt.plot(pts[:,0], pts[:,1], 'x')
-			plt.savefig("problem{0}.png".format(problemCount))
+			plt.savefig("problem{0}.svg".format(problemCount))
 			
 			pickle.dump(pts, open("problem{0}.dat".format(problemCount),"wb"), protocol=-1)
 
