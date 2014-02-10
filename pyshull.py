@@ -197,12 +197,12 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 	except RuntimeError:
 		return False, triOrdered1, triOrdered2
 
-	#if t1 == 0. or t3 == 0.:
-	#	print "Degenerate triangle found"
-
+	flipDegenerateTri = (t1 == math.pi or t3 == math.pi)
 	angTotal = t1 + t3
+	flipForDelaunay = angTotal > math.pi
+
 	#print ang1, ang2, angTotal
-	if angTotal > math.pi:
+	if flipDegenerateTri or flipForDelaunay:
 		#print "Flip possibly required", angTotal, triOrdered1, triOrdered2
 		try:
 			t2 = CalcTriangleAng(pts, distCache, quad[1], quad[3], quad[2])
@@ -210,7 +210,15 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		except RuntimeError:
 			return False, triOrdered1, triOrdered2
 		#t1 + t2 + t3 + t4 == 2 * math.pi
-		#print t1, t2, t3, t4
+
+		if flipDegenerateTri and (t2 > math.pi or t4 > math.pi):
+			#Flipping would create an overlap
+			return False, triOrdered1, triOrdered2
+
+		if t2 == math.pi or t4 == math.pi:
+			#print t1, t2, t3, t4
+			#Flipping would create triangle of zero size
+			return False, triOrdered1, triOrdered2
 
 		flipTri1 = (triOrdered2[1], triOrdered1[2], triOrdered1[0])
 		flipTri2 = (triOrdered1[2], triOrdered2[1], triOrdered1[1])
@@ -218,7 +226,7 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		flipAngTotal = t2 + t4
 		#print "Angle when flipped", flipAngTotal
 				
-		if flipAngTotal >= angTotal:
+		if flipForDelaunay and flipAngTotal >= angTotal:
 			#print "Abort flip", flipAngTotal
 			#No improvement when flipped, so abort flip
 			return False, triOrdered1, triOrdered2
@@ -236,8 +244,8 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 			raise RuntimeError("Left hand triangle detected", flipTri1)
 		if rhCheck2 < 0.:
 			raise RuntimeError("Left hand triangle detected", flipTri2)
-	
-		#print "flipped", flipTri1, flipTri2
+
+		#print "flipped", flipTri1, flipTri2, flipDegenerateTri, flipForDelaunay
 		return True, flipTri1, flipTri2
 
 	return False, triOrdered1, triOrdered2
@@ -288,7 +296,6 @@ def FlipTriangles(pts, triangles):
 
 	running = True
 	while running:
-
 		#Since we are modifying the edge structure, take a static copy of keys
 		sharedEdgeKeys = sharedEdges.keys()
 
@@ -303,7 +310,7 @@ def FlipTriangles(pts, triangles):
 			tri2 = triangles[edge[1]]
 			commonEdge = HasCommonEdge(tri1, tri2)
 			if commonEdge is None:
-				print "err", tri1, tri2
+				#print "err", tri1, tri2
 				raise Exception("Expected common edge")
 			triInd1, triInd2 = commonEdge
 			#print "original ind", tri1, tri2
@@ -331,7 +338,7 @@ def FlipTriangles(pts, triangles):
 		if count > 0 and triangles in previousConfigurations:
 
 			#Prevent an infinite loop of triangle flipping
-			exception = Exception("Cannot find delaunay arrangement")
+			exception = RuntimeError("Cannot find delaunay arrangement")
 			exception.triangles = triangles
 			raise exception
 
