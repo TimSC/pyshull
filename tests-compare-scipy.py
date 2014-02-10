@@ -49,6 +49,8 @@ if __name__ == "__main__":
 		triangles2 = spatial.Delaunay(pts).simplices
 		print "scipy Processed", n, "points in", time.time() - startTime, "sec"
 
+		print "Problems found", problemCount
+		
 		#print triangles
 		compare = CompareTriangleLists(triangles, triangles2)
 		
