@@ -343,6 +343,27 @@ def FlipTriangles(pts, triangles):
 				AddTriangleToCommonEdges(sharedEdges, triangles, edge[1])
 
 				count += 1
+	
+				if 0:
+					print tri1, tri2
+					print [pts[c] for c in tri1], [pts[c] for c in tri2]
+
+					import matplotlib.pyplot as plt
+					import numpy as np
+					plt.clf()
+					for tn, tri in enumerate(triangles):
+						col = "g--"
+						if tn == edge[0]:
+							col = "r--"
+						if tn == edge[1]:
+							col = "b--"
+						tri2 = list(tri[:])
+						tri2.append(tri[0])
+						ptsArr = np.array(pts)
+						plt.plot(ptsArr[tri2,0], ptsArr[tri2,1], col)
+
+					#plt.plot(pts[:,0], pts[:,1], 'x')
+					plt.show()
 
 		if count > 0 and triangles in previousConfigurations:
 

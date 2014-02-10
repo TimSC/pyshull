@@ -281,8 +281,11 @@ if __name__=="__main__":
 
 	pts, triangles = EarClipping(outer, holes)
 
-	#import pyshull
-	#triangles = pyshull.FlipTriangles(pts, triangles)
+	if 1:
+		#Use delaunay flipping to improve mesh quality
+		import pyshull
+		revtris = [tri[::-1] for tri in triangles]
+		triangles = pyshull.FlipTriangles(pts, revtris)
 
 	print triangles
 
