@@ -150,88 +150,52 @@ def CosineRuleAngle(a, b, c):
 	y = (2.*b*c)
 	return math.acos(x/y)
 
-def TriangleAngFromLengths(pts, distCache, pt1, pt2, pt3):
+def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
+	#Angle is computed on pt3. pt1 and pt2 define the side opposite the angle
 
 	a = CalcDistCached(pts, pt1, pt2, distCache) #Length opposite the angle of interest
 	b = CalcDistCached(pts, pt2, pt3, distCache)
 	c = CalcDistCached(pts, pt3, pt1, distCache)
+	if b == 0. or c == 0.:
+		raise RuntimeError("Angle not defined in this case")
 	return CosineRuleAngle(a, b, c)
 
-def CalcTriangleAng(pts, distCache, pt1n, pt2n, pt3n):
-	#Angle is computed on pt3. pt1 and pt2 define the side opposite the angle
-
-	pt1 = pts[pt1n]
-	pt2 = pts[pt2n]
-	pt3 = pts[pt3n]
-
-	vec32 = (pt2[0]-pt3[0], pt2[1]-pt3[1])
-	vec31 = (pt1[0]-pt3[0], pt1[1]-pt3[1])
-
-	#Normalise
-	mag32 = (vec32[0]**2. + vec32[1]**2.) ** 0.5
-	mag31 = (vec31[0]**2. + vec31[1]**2.) ** 0.5
-
-	if mag32 == 0. or mag31 == 0.:
-		raise Exception("Angle not defined for zero area triangles")
-
-	vec32n = [c / mag32 for c in vec32]
-	vec31n = [c / mag31 for c in vec31]
-
-	print "n", vec32n, vec31n
-	
-	crossProd = vec32n[0] * vec31n[1] - vec32n[1] * vec31n[0]
-	print "crossProd", crossProd
-
-	ang = math.asin(crossProd)
-	print "a", ang
-	if ang < 0.:
-		ang += 2. * math.pi
-	test2 = TriangleAngFromLengths(pts, distCache, pt1n, pt2n, pt3n)
-	print "test", ang, test2
-	if test2 > ang:
-		print "dump", pt1, pt2, pt3
-	return abs(ang)
-
 def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache):
-	if triOrdered1 in angleCache:
-		ang1 = angleCache[triOrdered1]
-	else:
-		print "ang1"
-		ang1 = CalcTriangleAng(pts, distCache, *triOrdered1)
-		angleCache[triOrdered1] = ang1
+	#print triOrdered1
+	#print triOrdered2
+	quad = triOrdered1[0], triOrdered1[2], triOrdered2[2], triOrdered2[1]
+	#print "quad", quad
 
-	if triOrdered2 in angleCache:
-		ang2 = angleCache[triOrdered2]
-	else:
-		print "ang2"
-		ang2 = CalcTriangleAng(pts, distCache, triOrdered2[1], triOrdered2[2], triOrdered2[0])
-		angleCache[triOrdered2] = ang2
+	t1 = CalcTriangleAng(pts, distCache, quad[0], quad[2], quad[1])
+	t3 = CalcTriangleAng(pts, distCache, quad[2], quad[0], quad[3])
 
-	angTotal = ang1 + ang2
+	angTotal = t1 + t3
 	#print ang1, ang2, angTotal
 	if angTotal > math.pi:
-		print "Flip possibly required", angTotal, triOrdered1, triOrdered2
+		#print "Flip possibly required", angTotal, triOrdered1, triOrdered2
+		
+		t2 = CalcTriangleAng(pts, distCache, quad[1], quad[3], quad[2])
+		t4 = CalcTriangleAng(pts, distCache, quad[3], quad[1], quad[0])
+		#t1 + t2 + t3 + t4 == 2 * math.pi
+		#print t1, t2, t3, t4
 
-		flipTri1 = (triOrdered1[2], triOrdered2[2], triOrdered1[1])
-		flipTri2 = (triOrdered2[2], triOrdered1[0], triOrdered1[2])
+		flipTri1 = (triOrdered1[2], triOrdered1[0], triOrdered2[1])
+		flipTri2 = (triOrdered2[1], triOrdered1[1], triOrdered1[2])
 
-		if flipTri1 in angleCache:
-			flipAng1 = angleCache[flipTri1]
-		else:
-			flipAng1 = CalcTriangleAng(pts, distCache, *flipTri1)
-			angleCache[flipTri1] = flipAng1
+		#if RightHandedCheck(pts, *flipTri1) < 0.:
+		#	flipTri1 = (flipTri1[0], flipTri1[2], flipTri1[1])
+		#if RightHandedCheck(pts, *flipTri2) < 0.:
+		#	flipTri2 = (flipTri2[0], flipTri2[2], flipTri2[1])
 
-		if flipTri2 in angleCache:
-			flipAng2 = angleCache[flipTri2]
-		else:
-			flipAng2 = CalcTriangleAng(pts, distCache, *flipTri2)
-			angleCache[flipTri2] = flipAng2
+		#Ensure they are right handed
+		#print flipTri1, RightHandedCheck(pts, *flipTri1)
+		#print flipTri2, RightHandedCheck(pts, *flipTri2)
 
-		flipAngTotal = flipAng1 + flipAng2
+		flipAngTotal = t2 + t4
 		#print "Angle when flipped", flipAngTotal
 				
 		if flipAngTotal >= angTotal:
-			#print "Abort flip"
+			#print "Abort flip", flipAngTotal
 			#No improvement when flipped, so abort flip
 			return False, triOrdered1, triOrdered2
 
@@ -241,7 +205,7 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		#if rh1 <= 0. or rh2 <= 0.:
 		#	return False, triOrdered1, triOrdered2
 
-		#print "flipped", flipTri1, flipTri2
+		print "flipped", flipTri1, flipTri2
 		return True, flipTri1, flipTri2
 
 	return False, triOrdered1, triOrdered2
