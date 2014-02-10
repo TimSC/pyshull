@@ -151,24 +151,31 @@ def FormTriangles(pts, seedTriangle, orderToAddPts):
 		hull = newHull
 	return hull, triangles
 
-def CosineRuleAngle(a, b, c):
-	x = ((b**2.) + (c**2.) - (a**2.))
-	y = (2.*b*c)
-	ratio = x/y
-	#print "ratio", ratio, x, y
-	if ratio >= 1. or ratio <= -1:
-		return 0. #Cosine rule only supports up to this angle anyway
-	return math.acos(ratio)
-
 def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
-	#Angle is computed on pt3. pt1 and pt2 define the side opposite the angle
 
-	a = CalcDistCached(pts, pt1, pt2, distCache) #Length opposite the angle of interest
-	b = CalcDistCached(pts, pt2, pt3, distCache)
-	c = CalcDistCached(pts, pt3, pt1, distCache)
-	if b == 0. or c == 0.:
-		raise RuntimeError("Angle not defined in this case")
-	return CosineRuleAngle(a, b, c)
+	#Angle is computed on pt3. pt1 and pt2 define the side opposite the angle
+	pt1v = pts[pt1]
+	pt2v = pts[pt2]
+	pt3v = pts[pt3]
+	v31 = (pt1v[0] - pt3v[0], pt1v[1] - pt3v[1])
+	v32 = (pt2v[0] - pt3v[0], pt2v[1] - pt3v[1])
+	mv31 = (v31[0]**2. + v31[1]**2.) ** 0.5
+	mv32 = (v32[0]**2. + v32[1]**2.) ** 0.5
+	v31n = [c / mv31 for c in v31]
+	v32n = [c / mv32 for c in v32]
+	crossProd = - v31n[0] * v32n[1] + v31n[1] * v32n[0]
+	dotProd = v31n[0] * v32n[0] + v31n[1] * v32n[1]
+	
+	#print crossProd < 0., crossProd
+	#print math.asin(crossProd), math.acos(dotProd), cosAng
+	if crossProd < 0.:
+		#Reflex angle detected
+		trigAng = 2. * math.pi - math.acos(dotProd)
+	else:
+		#Acute or obtuse angle
+		trigAng = math.acos(dotProd)
+
+	return trigAng
 
 def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache, debugMode = 0):
 
@@ -186,6 +193,9 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		t3 = CalcTriangleAng(pts, distCache, quad[2], quad[0], quad[3])
 	except RuntimeError:
 		return False, triOrdered1, triOrdered2
+
+	#if t1 == 0. or t3 == 0.:
+	#	print "Degenerate triangle found"
 
 	angTotal = t1 + t3
 	#print ang1, ang2, angTotal
