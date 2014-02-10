@@ -112,17 +112,26 @@ def LineSegmentIntersection(L1in, L2in):
 		return False
 
 	chk1 = IsPointInSegment(L1in, infIntersect)
+	if chk1 is False: return False
 	chk2 = IsPointInSegment(L2in, infIntersect)	
 
 	return chk1 and chk2
 
-def PointVisibility(pts, poly, holeInd, holeNum, holes):
+def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 	visiblePoints = []
 	#print "holeShape", holeShape
 	ptCoord = holes[holeNum][holeInd]
 
-	#Check each point
+	#Order points by distance
+	ptsByDist = []
 	for ptIndex, ptNum in enumerate(poly):
+		dist = ((ptCoord[0] - pts[poly[ptIndex]][0])**2.+(ptCoord[1] - pts[poly[ptIndex]][1])**2.)**0.5
+		ptsByDist.append((dist, ptIndex))
+	sorted(ptsByDist)
+
+	#Check each point
+	for dist, ptIndex in ptsByDist:
+		ptNum = poly[ptIndex]
 		#See if any line segments block
 		blocked = False
 		for edgeStart, edgeStartPt in enumerate(poly):
@@ -171,6 +180,9 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes):
 			dist = ((ptCoord[0] - pts[poly[ptIndex]][0])**2.+(ptCoord[1] - pts[poly[ptIndex]][1])**2.)**0.5
 			visiblePoints.append((dist, ptIndex))
 
+		if getSingleResult and len(visiblePoints) > 0:
+			break
+
 	visiblePoints.sort()
 	return visiblePoints
 
@@ -189,7 +201,7 @@ def EarClipping(poly, holes):
 		foundCut = None
 		for holdPtNum, holeCoord in enumerate(hole):
 
-			visible = PointVisibility(pts, workingPoly, holdPtNum, holeNum, holes)
+			visible = PointVisibility(pts, workingPoly, holdPtNum, holeNum, holes, True)
 			#print "vis", holeCoord, visible
 			if len(visible) > 0:
 				if foundCut is None:
@@ -267,7 +279,7 @@ def EarClipping(poly, holes):
 	return pts, triangles
 
 if __name__=="__main__":
-	import matplotlib.pyplot as plt
+	
 	import numpy as np
 	import time
 	#pts = [(2.,1.),(4.,5.),(2.,0.),(0.,5.)]
@@ -292,23 +304,25 @@ if __name__=="__main__":
 		triangles = pyshull.FlipTriangles(pts, revtris)
 		print "Mesh flipping done in", time.time() - startTime, "sec"
 
-	print triangles
+	if 0:
+		print triangles
 
-	ptsArr = np.array(pts)
-	outerArr = np.array(outer)
-	plt.clf()
-	for tri in triangles:
-		triTemp = list(tri[:])
-		triTemp.append(tri[0])
-		plt.plot(ptsArr[triTemp,0], ptsArr[triTemp,1],'r-')
-	plt.plot(outerArr[:,0], outerArr[:,1],'g-')
-	for hole in holes:
-		holeTmp = list(hole[:])
-		holeTmp.append(hole[0])
-		holeArr = np.array(holeTmp)
-		plt.plot(holeArr[:,0], holeArr[:,1],'g-')
+		import matplotlib.pyplot as plt
+		ptsArr = np.array(pts)
+		outerArr = np.array(outer)
+		plt.clf()
+		for tri in triangles:
+			triTemp = list(tri[:])
+			triTemp.append(tri[0])
+			plt.plot(ptsArr[triTemp,0], ptsArr[triTemp,1],'r-')
+		plt.plot(outerArr[:,0], outerArr[:,1],'g-')
+		for hole in holes:
+			holeTmp = list(hole[:])
+			holeTmp.append(hole[0])
+			holeArr = np.array(holeTmp)
+			plt.plot(holeArr[:,0], holeArr[:,1],'g-')
 	
-	plt.show()
+		plt.show()
 
 
 
