@@ -43,7 +43,27 @@ def RightHandedCheck(pts, pt1, pt2, pt3):
 	vec23 = (pts[pt3][0] - pts[pt2][0], pts[pt3][1] - pts[pt2][1])
 	return vec21[0] * vec23[1] - vec21[1] * vec23[0]
 
-#def MergeHoleIntoOuter(workingPoly, pts)
+def MergeHoleIntoOuter(workingPoly, pts, outerInd, hole, holeInd):
+	#Outer polygon before cut
+	filterWorkingPoly = workingPoly[:outerInd+1]
+	filteredPts = pts[:]
+
+	#Reorder hole
+	reorderedHole = hole[holeInd:]
+	reorderedHole.extend(hole[:holeInd])
+
+	#Insert hole
+	holdStartInd = len(filteredPts)
+	filteredPts.extend(reorderedHole)
+	filterWorkingPoly.extend(range(holdStartInd, holdStartInd+len(reorderedHole)))
+
+	#Close hole
+	filterWorkingPoly.append(holdStartInd)
+	
+	#Outer polygon after cut
+	filterWorkingPoly.extend(workingPoly[outerInd:])
+
+	return filterWorkingPoly, filteredPts
 
 def EarClipping(poly, holes):
 	#Based on Triangulation by Ear Clipping by David Eberly
@@ -51,23 +71,12 @@ def EarClipping(poly, holes):
 	angleCache = {}
 	triangles = []
 
-	workingPoly = [0]
-	pts = [poly[0]]
+	workingPoly = range(len(poly))
+	pts = poly[:]
 
-	for hole in holes:
-		holeStartInd = len(pts)
-		workingPoly.extend(range(holeStartInd, holeStartInd+len(hole)))
-		pts.extend(hole)
-		workingPoly.append(holeStartInd)
-	
-	workingPoly.append(0)
-
-	remainsStartInd = len(pts)
-	workingPoly.extend(range(remainsStartInd, remainsStartInd+len(poly)-1))
-	pts.extend(poly[1:])
-
-	#print workingPoly, len(workingPoly)
-	#print pts, len(pts)
+	workingPoly, pts = MergeHoleIntoOuter(workingPoly, pts, 1, holes[0], 3)
+	print "wp", workingPoly
+	print "pts", pts
 
 	if 0:
 		import matplotlib.pyplot as plt
@@ -115,6 +124,7 @@ def EarClipping(poly, holes):
 				import matplotlib.pyplot as plt
 				import numpy as np
 				ptsArr = np.array(pts)
+				print ptsArr[workingPoly,:]
 				plt.clf()
 				for tri in triangles:
 					triTemp = list(tri[:])
