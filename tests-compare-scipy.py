@@ -1,6 +1,6 @@
 
 import matplotlib.pyplot as plt
-import pyshull, sys, time, pickle
+import pyshull, sys, time, pickle, random
 import numpy as np
 import scipy.spatial as spatial
 
@@ -38,8 +38,15 @@ if __name__ == "__main__":
 	problemCount = 0	
 
 	while 1:
-
+	
+		#Generate random points
 		pts = np.random.rand(n, 2)
+
+		#Align some of the points
+		for i in range(pts.shape[0]):
+			for j in range(pts.shape[1]):
+				if random.randint(0,1):
+					pts[i,j] = random.randint(0,10) / 10.
 
 		startTime = time.time()
 		triangles = pyshull.PySHull(pts)
