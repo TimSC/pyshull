@@ -205,7 +205,7 @@ def EarClipping(poly, holes):
 		#print "wp", workingPoly
 		#print "pts", pts
 
-	if 1:
+	if 0:
 		import matplotlib.pyplot as plt
 		import numpy as np
 		ptsArr = np.array(pts)
