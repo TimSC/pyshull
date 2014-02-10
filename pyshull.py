@@ -161,6 +161,9 @@ def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
 	v32 = (pt2v[0] - pt3v[0], pt2v[1] - pt3v[1])
 	mv31 = (v31[0]**2. + v31[1]**2.) ** 0.5
 	mv32 = (v32[0]**2. + v32[1]**2.) ** 0.5
+	if mv31 == 0. or mv32 == 0.:
+		raise RuntimeError("Angle not defined for zero area triangles")
+
 	v31n = [c / mv31 for c in v31]
 	v32n = [c / mv32 for c in v32]
 	crossProd = - v31n[0] * v32n[1] + v31n[1] * v32n[0]
