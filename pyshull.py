@@ -151,7 +151,11 @@ def FormTriangles(pts, seedTriangle, orderToAddPts):
 		hull = newHull
 	return hull, triangles
 
-def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
+def CalcTriangleAng(pts, angleCache, pt1, pt2, pt3):
+
+	angId = (pt1, pt2, pt3)
+	if angId in angleCache:
+		return angleCache[angId]
 
 	#Angle is computed on pt3. pt1 and pt2 define the side opposite the angle
 	pt1v = pts[pt1]
@@ -169,6 +173,10 @@ def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
 	crossProd = - v31n[0] * v32n[1] + v31n[1] * v32n[0]
 	dotProd = v31n[0] * v32n[0] + v31n[1] * v32n[1]
 	
+	#Limit to valid range
+	if dotProd > 1.: dotProd = 1.
+	if dotProd < -1.: dotProd = -1.
+
 	#print crossProd < 0., crossProd
 	#print math.asin(crossProd), math.acos(dotProd), cosAng
 	if crossProd < 0.:
@@ -178,6 +186,7 @@ def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
 		#Acute or obtuse angle
 		trigAng = math.acos(dotProd)
 
+	angleCache[angId] = trigAng
 	return trigAng
 
 def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache, debugMode = 0):
@@ -192,8 +201,8 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 	#print "quad", quad
 
 	try:
-		t1 = CalcTriangleAng(pts, distCache, quad[0], quad[2], quad[1])
-		t3 = CalcTriangleAng(pts, distCache, quad[2], quad[0], quad[3])
+		t1 = CalcTriangleAng(pts, angleCache, quad[0], quad[2], quad[1])
+		t3 = CalcTriangleAng(pts, angleCache, quad[2], quad[0], quad[3])
 	except RuntimeError:
 		return False, triOrdered1, triOrdered2
 
@@ -205,8 +214,8 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 	if flipDegenerateTri or flipForDelaunay:
 		#print "Flip possibly required", angTotal, triOrdered1, triOrdered2
 		try:
-			t2 = CalcTriangleAng(pts, distCache, quad[1], quad[3], quad[2])
-			t4 = CalcTriangleAng(pts, distCache, quad[3], quad[1], quad[0])
+			t2 = CalcTriangleAng(pts, angleCache, quad[1], quad[3], quad[2])
+			t4 = CalcTriangleAng(pts, angleCache, quad[3], quad[1], quad[0])
 		except RuntimeError:
 			return False, triOrdered1, triOrdered2
 		#t1 + t2 + t3 + t4 == 2 * math.pi
