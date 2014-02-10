@@ -29,7 +29,9 @@ def FindSmallestCircumCircle(pts, firstIndex, secondIndex):
 
 	#http://www.mathopenref.com/trianglecircumcircle.html
 	a = CalcDist(pts[firstIndex], pts[secondIndex])
-	
+	if a == 0.:
+		raise Exception("Zero distance between duplicate points is not allowed")
+
 	diams = []
 	for ptNum, pt in enumerate(pts):
 		if ptNum == firstIndex:
@@ -68,6 +70,8 @@ def CircumCircleCentre(pta, ptb, ptc):
 	ptc2 = (ptc[0]**2.+ptc[1]**2.)
 
 	d = 2.*(pta[0]*(ptb[1]-ptc[1])+ptb[0]*(ptc[1]-pta[1])+ptc[0]*(pta[1]-ptb[1]))
+	if d == 0.:
+		raise RuntimeError("Could not find circumcircle centre")
 
 	ux = (pta2*(ptb[1]-ptc[1]) + ptb2*(ptc[1]-pta[1]) + ptc2*(pta[1]-ptb[1])) / d
 	uy = (pta2*(ptc[0]-ptb[0]) + ptb2*(pta[0]-ptc[0]) + ptc2*(ptb[0]-pta[0])) / d
@@ -92,14 +96,39 @@ def FormTriangles(pts, seedTriangle, orderToAddPts):
 
 		#Check which hull faces are visible
 		visInd = []
+		visList = []
 		for hInd in range(len(hull)):
 			#print pts[hull[hInd]], pts[hull[(hInd+1) % len(hull)]]
 			vis = RightHandedCheck(pts, hull[hInd], hull[(hInd+1) % len(hull)], ptToAdd)
 			#print "vis", hInd, vis
+			visList.append(vis)
 			if vis <= 0.:
 				visInd.append(hInd)
 
 		if len(visInd) == 0:
+			print visList
+			import matplotlib.pyplot as plt
+			import numpy as np
+			plt.clf()
+			ptsArr = np.array(pts)
+			plt.plot(ptsArr[:,0],ptsArr[:,1],'x')
+
+			#for tri in triangles:
+			#	triTmp = list(tri[:])
+			#	triTmp.append(tri[0])
+			#	plt.plot(ptsArr[triTmp,0],ptsArr[triTmp,1],'r-')
+
+			#hIndTemp = hull[:]
+			#hIndTemp.append(hull[0])
+			#plt.plot(ptsArr[hIndTemp,0],ptsArr[hIndTemp,1],'g-')
+
+			triTmp = list(seedTriangle[:])
+			triTmp.append(seedTriangle[0])
+			plt.plot(ptsArr[triTmp,0],ptsArr[triTmp,1],'y-')
+
+			plt.plot(ptsArr[ptToAdd,0],ptsArr[ptToAdd,1],'o')
+			plt.show()
+
 			raise Exception("No hull sides visible")
 
 		#Check for range of sides that are visible
@@ -164,11 +193,11 @@ def CalcTriangleAng(pts, distCache, pt1, pt2, pt3):
 		raise RuntimeError("Angle not defined in this case")
 	return CosineRuleAngle(a, b, c)
 
-def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache):
+def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache, debugMode = 0):
 
-	if RightHandedCheck(pts, *triOrdered1) < 0.:
+	if debugMode and RightHandedCheck(pts, *triOrdered1) < 0.:
 		raise RuntimeError("Left hand triangle detected", triOrdered1)
-	if RightHandedCheck(pts, *triOrdered2) < 0.:
+	if debugMode and RightHandedCheck(pts, *triOrdered2) < 0.:
 		raise RuntimeError("Left hand triangle detected", triOrdered2)
 	#print "triOrdered1", triOrdered1
 	#print "triOrdered2", triOrdered2
@@ -207,8 +236,10 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		#print flipTri1, RightHandedCheck(pts, *flipTri1)
 		#print flipTri2, RightHandedCheck(pts, *flipTri2)
 
-		rhCheck1 = RightHandedCheck(pts, *flipTri1)
-		rhCheck2 = RightHandedCheck(pts, *flipTri2)
+		rhCheck1, rhCheck2 = 0., 0.
+		if debugMode:
+			rhCheck1 = RightHandedCheck(pts, *flipTri1)
+			rhCheck2 = RightHandedCheck(pts, *flipTri2)
 
 		#if rhCheck1 < 0. or rhCheck2 < 0.:
 		#	import matplotlib.pyplot as plt
@@ -331,6 +362,10 @@ def FlipTriangles(pts, triangles):
 
 	return triangles
 
+def RemoveDuplicatePoints(pts):
+	filteredPts = set([tuple(pt) for pt in pts])
+	return list(filteredPts)
+
 def PySHull(pts):
 	#S-hull: a fast sweep-hull routine for Delaunay triangulation by David Sinclair
 	#http://www.s-hull.org/
@@ -346,6 +381,8 @@ def PySHull(pts):
 
 	#Find third point that creates the smallest circum-circle
 	sortedCircumCircles = FindSmallestCircumCircle(pts, seedIndex, nearestToSeed)
+	if sortedCircumCircles[0][0] == float("inf"):
+		raise Exception("Invalid circumcircle error")
 	thirdPtIndex = sortedCircumCircles[0][1]
 
 	#Order points to be right handed

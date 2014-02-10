@@ -51,6 +51,10 @@ if __name__ == "__main__":
 				if random.randint(0,1):
 					pts[i,j] = random.randint(0,10) / 10.
 
+		#Remove duplicates
+		pts = pyshull.RemoveDuplicatePoints(pts)
+		pts = np.array(pts)
+
 		startTime = time.time()
 		triangles = pyshull.PySHull(pts)
 		print "pyqhull Processed", n, "points in", time.time() - startTime, "sec"
