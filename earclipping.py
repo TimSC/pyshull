@@ -65,6 +65,114 @@ def MergeHoleIntoOuter(workingPoly, pts, outerInd, hole, holeInd):
 
 	return filterWorkingPoly, filteredPts
 
+def line(p1, p2):
+	p1 = map(float, p1)
+	p2 = map(float, p2)
+	A = (p1[1] - p2[1])
+	B = (p2[0] - p1[0])
+	C = (p1[0]*p2[1] - p2[0]*p1[1])
+	return A, B, -C
+
+def InfiniteLineIntersection(L1in, L2in):
+	#Based on http://stackoverflow.com/a/20679579
+	L1 = line(*L1in)
+	L2 = line(*L2in)
+	
+	D  = L1[0] * L2[1] - L1[1] * L2[0]
+	Dx = L1[2] * L2[1] - L1[1] * L2[2]
+	Dy = L1[0] * L2[2] - L1[2] * L2[0]
+	if D != 0:
+		x = Dx / D
+		y = Dy / D
+		return x,y
+	else:
+		return False
+
+def IsPointInSegment(L1in, pt):
+	#Check if intersection is in L1 segment
+	vecL1 = L1in[1][0] - L1in[0][0], L1in[1][1] - L1in[0][1]
+	vecAtoI = pt[0] - L1in[0][0], pt[1] - L1in[0][1]
+	magVecL1 = (vecL1[0]**2. + vecL1[1]**2.) ** 0.5
+	#magVecAtoI = (vecAtoI[0]**2. + vecAtoI[1]**2.) ** 0.5
+	if magVecL1 == 0.:
+		raise RuntimeError("Zero length input line")
+	#if magVecAtoI == 0.:
+	#	return True
+
+	vecL1n = (vecL1[0] / magVecL1, vecL1[1] / magVecL1)
+	dotProd = vecL1n[0] * vecAtoI[0] + vecL1n[1] * vecAtoI[1]
+	if dotProd >= 0. and dotProd < magVecL1:
+		return True
+	return False
+
+def LineSegmentIntersection(L1in, L2in):
+
+	infIntersect = InfiniteLineIntersection(L1in, L2in)
+	if infIntersect is False:
+		return False
+
+	chk1 = IsPointInSegment(L1in, infIntersect)
+	chk2 = IsPointInSegment(L2in, infIntersect)	
+
+	return chk1 and chk2
+
+def PointVisibility(pts, poly, holeInd, holeNum, holes):
+	visiblePoints = []
+	#print "holeShape", holeShape
+	ptCoord = holes[holeNum][holeInd]
+
+	#Check each point
+	for ptIndex, ptNum in enumerate(poly):
+		#See if any line segments block
+		blocked = False
+		for edgeStart, edgeStartPt in enumerate(poly):
+			edgeEnd = (edgeStart + 1) % len(poly)
+			if poly[edgeStart] == ptNum: continue
+			if poly[edgeEnd] == ptNum: continue
+			ret = LineSegmentIntersection((ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]]))
+			if ret is not False:
+				blocked=True
+				break
+
+		#Check if the hole self blocks
+		holeShape = holes[holeNum]
+		for holePtNum, holeChkCoord in enumerate(holeShape):
+			if blocked: 
+				break
+			nextPtNum = (holePtNum + 1) % len(holeShape)
+			if holePtNum == holeInd: continue
+			if nextPtNum == holeInd: continue
+			ret = LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
+			#print ptIndex, holeInd, holePtNum, nextPtNum, ret
+			if ret is not False:
+				#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
+				blocked=True
+		
+		#Check if it would be blocked by a future fole
+		for holeNumChk, holeShape in enumerate(holes):
+			if blocked:
+				break
+			if holeNumChk == holeNum: continue #Already done self collisions
+
+			for holePtNum, holeChkCoord in enumerate(holeShape):
+				if blocked: 
+					break
+				nextPtNum = (holePtNum + 1) % len(holeShape)
+				if holePtNum == holeInd: continue
+				if nextPtNum == holeInd: continue
+				ret = LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
+				#print ptIndex, holeInd, holePtNum, nextPtNum, ret
+				if ret is not False:
+					#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
+					blocked=True
+			
+		#print ptNum, blocked
+		if not blocked:
+			visiblePoints.append(ptIndex)
+
+	return visiblePoints
+
+
 def EarClipping(poly, holes):
 	#Based on Triangulation by Ear Clipping by David Eberly
 	
@@ -74,11 +182,25 @@ def EarClipping(poly, holes):
 	workingPoly = range(len(poly))
 	pts = poly[:]
 
-	workingPoly, pts = MergeHoleIntoOuter(workingPoly, pts, 1, holes[0], 3)
-	print "wp", workingPoly
-	print "pts", pts
+	for holeNum, hole in enumerate(holes):
+		#Find place to make cut
+		foundCut = None
+		for holdPtNum, holeCoord in enumerate(hole):
 
-	if 0:
+			visible = PointVisibility(pts, workingPoly, holdPtNum, holeNum, holes)
+			print "vis", holeCoord, visible
+			if len(visible) > 0:
+				foundCut = (visible[0], holdPtNum)
+				break
+
+		if foundCut is None:
+			raise RuntimeError("Failed to join hole to other polygon")
+
+		workingPoly, pts = MergeHoleIntoOuter(workingPoly, pts, foundCut[0], hole, foundCut[1])
+		print "wp", workingPoly
+		print "pts", pts
+
+	if 1:
 		import matplotlib.pyplot as plt
 		import numpy as np
 		ptsArr = np.array(pts)
@@ -148,7 +270,9 @@ if __name__=="__main__":
 	outer = [(0.,0.),(1.,0.),(1.,1.),(2.,1.),(2.,2.),(4.,2.),(4.,4.),(2.,4.),(2.,3.),(1.,3.),(1.,2.),(0.,2.)]
 
 	#Holes are specified clockwise
-	holes = [[(0.25,0.25),(0.25,0.75),(0.75,0.75),(0.75,0.25)]]
+	holes = [[(0.25,0.25),(0.25,0.75),(0.75,0.75),(0.75,0.25)],
+		[(3.25,3.25),(3.25,3.75),(3.75,3.75),(3.75,3.25)],
+		[(2.5,2.1),(2.9,2.5),(2.5,2.9),(2.1,2.5)]]
 
 	pts, triangles = EarClipping(outer, holes)
 
