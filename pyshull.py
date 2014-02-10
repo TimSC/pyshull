@@ -191,10 +191,16 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 
 		flipAngTotal = flipAng1 + flipAng2
 		#print "Angle when flipped", flipAngTotal
-		
+				
 		if flipAngTotal >= angTotal:
 			#print "Abort flip"
 			#No improvement when flipped, so abort flip
+			return False, triOrdered1, triOrdered2
+
+		#Prevent flip creating an overlap
+		rh1 = RightHandedCheck(pts, flipTri1[1], flipTri1[2], flipTri1[0])
+		rh2 = RightHandedCheck(pts, flipTri2[1], flipTri2[2], flipTri2[0])
+		if rh1 <= 0. or rh2 <= 0.:
 			return False, triOrdered1, triOrdered2
 
 		#print "flipped", flipTri1, flipTri2

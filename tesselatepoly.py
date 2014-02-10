@@ -58,6 +58,7 @@ def PerformFlipOfTriPair(pts, triangles, triNum1, triNum2):
 if __name__=="__main__":
 	import matplotlib.pyplot as plt
 	import numpy as np
+	#pts = [(2.,1.),(4.,5.),(2.,0.),(0.,5.)]
 	pts = [(0.,0.),(1.,0.),(1.,1.),(2.,1.),(2.,2.),(4.,2.),(4.,4.),(2.,4.),(2.,3.),(1.,3.),(1.,2.),(0.,2.)]
 	try:
 		triangles = pyshull.PySHull(pts)
@@ -74,6 +75,7 @@ if __name__=="__main__":
 			if flipable:
 				PerformFlipOfTriPair(pts, triangles, i, j)
 
+	#triangles = pyshull.FlipTriangles(pts, triangles)
 	#triangles = spatial.Delaunay(pts).simplices
 
 	pts = np.array(pts)
