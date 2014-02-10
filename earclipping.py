@@ -304,7 +304,7 @@ if __name__=="__main__":
 		triangles = pyshull.FlipTriangles(pts, revtris)
 		print "Mesh flipping done in", time.time() - startTime, "sec"
 
-	if 0:
+	if 1:
 		print triangles
 
 		import matplotlib.pyplot as plt
