@@ -188,7 +188,7 @@ def EarClipping(poly, holes):
 		for holdPtNum, holeCoord in enumerate(hole):
 
 			visible = PointVisibility(pts, workingPoly, holdPtNum, holeNum, holes)
-			print "vis", holeCoord, visible
+			#print "vis", holeCoord, visible
 			if len(visible) > 0:
 				foundCut = (visible[0], holdPtNum)
 				break
@@ -197,8 +197,8 @@ def EarClipping(poly, holes):
 			raise RuntimeError("Failed to join hole to other polygon")
 
 		workingPoly, pts = MergeHoleIntoOuter(workingPoly, pts, foundCut[0], hole, foundCut[1])
-		print "wp", workingPoly
-		print "pts", pts
+		#print "wp", workingPoly
+		#print "pts", pts
 
 	if 1:
 		import matplotlib.pyplot as plt
@@ -272,7 +272,7 @@ if __name__=="__main__":
 	#Holes are specified clockwise
 	holes = [[(0.25,0.25),(0.25,0.75),(0.75,0.75),(0.75,0.25)],
 		[(3.25,3.25),(3.25,3.75),(3.75,3.75),(3.75,3.25)],
-		[(2.5,2.1),(2.9,2.5),(2.5,2.9),(2.1,2.5)]]
+		[(2.1,2.5),(2.5,2.9),(2.9,2.5),(2.5,2.1),]]
 
 	pts, triangles = EarClipping(outer, holes)
 
@@ -289,6 +289,12 @@ if __name__=="__main__":
 		triTemp.append(tri[0])
 		plt.plot(ptsArr[triTemp,0], ptsArr[triTemp,1],'r-')
 	plt.plot(outerArr[:,0], outerArr[:,1],'g-')
+	for hole in holes:
+		holeTmp = list(hole[:])
+		holeTmp.append(hole[0])
+		holeArr = np.array(holeTmp)
+		plt.plot(holeArr[:,0], holeArr[:,1],'g-')
+	
 	plt.show()
 
 
