@@ -148,7 +148,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes):
 				#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
 				blocked=True
 		
-		#Check if it would be blocked by a future fole
+		#Check if it would be blocked by a future hole
 		for holeNumChk, holeShape in enumerate(holes):
 			if blocked:
 				break
@@ -168,8 +168,10 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes):
 			
 		#print ptNum, blocked
 		if not blocked:
-			visiblePoints.append(ptIndex)
+			dist = ((ptCoord[0] - pts[poly[ptIndex]][0])**2.+(ptCoord[1] - pts[poly[ptIndex]][1])**2.)**0.5
+			visiblePoints.append((dist, ptIndex))
 
+	visiblePoints.sort()
 	return visiblePoints
 
 
@@ -190,8 +192,11 @@ def EarClipping(poly, holes):
 			visible = PointVisibility(pts, workingPoly, holdPtNum, holeNum, holes)
 			#print "vis", holeCoord, visible
 			if len(visible) > 0:
-				foundCut = (visible[0], holdPtNum)
-				break
+				if foundCut is None:
+					foundCut = (visible[0][1], holdPtNum, visible[0][0])
+				elif visible[0][0] < foundCut[2]:
+					#Use nearer point
+					foundCut = (visible[0][1], holdPtNum, visible[0][0])
 
 		if foundCut is None:
 			raise RuntimeError("Failed to join hole to other polygon")
