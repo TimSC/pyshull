@@ -43,12 +43,39 @@ def RightHandedCheck(pts, pt1, pt2, pt3):
 	vec23 = (pts[pt3][0] - pts[pt2][0], pts[pt3][1] - pts[pt2][1])
 	return vec21[0] * vec23[1] - vec21[1] * vec23[0]
 
-def EarClipping(poly):
-	#Based on Triangulation by Ear Clipping by David Eberly
+#def MergeHoleIntoOuter(workingPoly, pts)
 
-	workingPoly = range(len(poly))
+def EarClipping(poly, holes):
+	#Based on Triangulation by Ear Clipping by David Eberly
+	
 	angleCache = {}
 	triangles = []
+
+	workingPoly = [0]
+	pts = [poly[0]]
+
+	for hole in holes:
+		holeStartInd = len(pts)
+		workingPoly.extend(range(holeStartInd, holeStartInd+len(hole)))
+		pts.extend(hole)
+		workingPoly.append(holeStartInd)
+	
+	workingPoly.append(0)
+
+	remainsStartInd = len(pts)
+	workingPoly.extend(range(remainsStartInd, remainsStartInd+len(poly)-1))
+	pts.extend(poly[1:])
+
+	#print workingPoly, len(workingPoly)
+	#print pts, len(pts)
+
+	if 0:
+		import matplotlib.pyplot as plt
+		import numpy as np
+		ptsArr = np.array(pts)
+		plt.clf()
+		plt.plot(ptsArr[workingPoly,0], ptsArr[workingPoly,1],'g-')
+		plt.show()
 
 	while len(workingPoly) > 3:
 		workingNodes = len(workingPoly)
@@ -65,7 +92,7 @@ def EarClipping(poly):
 			#Check if nodes are in this ear
 			foundNode = False
 			for nodeNum2 in range(workingNodes):
-				if nodeNum2 in [prevNode, nodeNum, nextNode]: continue
+				if workingPoly[nodeNum2] in [workingPoly[prevNode], workingPoly[nodeNum], workingPoly[nextNode]]: continue
 				chk1 = RightHandedCheck(pts, workingPoly[prevNode], workingPoly[nodeNum], workingPoly[nodeNum2])
 				chk2 = RightHandedCheck(pts, workingPoly[nodeNum], workingPoly[nextNode], workingPoly[nodeNum2])
 				chk3 = RightHandedCheck(pts, workingPoly[nextNode], workingPoly[prevNode], workingPoly[nodeNum2])
@@ -92,7 +119,7 @@ def EarClipping(poly):
 				for tri in triangles:
 					triTemp = list(tri[:])
 					triTemp.append(tri[0])
-					print triTemp
+					#print triTemp
 					plt.plot(ptsArr[triTemp,0], ptsArr[triTemp,1],'r-')
 				plt.plot(ptsArr[workingPoly,0], ptsArr[workingPoly,1],'g-')
 				plt.show()
@@ -100,7 +127,7 @@ def EarClipping(poly):
 			break
 
 	triangles.append(workingPoly)
-	return triangles
+	return pts, triangles
 
 if __name__=="__main__":
 	import matplotlib.pyplot as plt
@@ -108,9 +135,12 @@ if __name__=="__main__":
 	#pts = [(2.,1.),(4.,5.),(2.,0.),(0.,5.)]
 
 	#Polygon is defined in an anti-clockwise order
-	pts = [(0.,0.),(1.,0.),(1.,1.),(2.,1.),(2.,2.),(4.,2.),(4.,4.),(2.,4.),(2.,3.),(1.,3.),(1.,2.),(0.,2.)]
+	outer = [(0.,0.),(1.,0.),(1.,1.),(2.,1.),(2.,2.),(4.,2.),(4.,4.),(2.,4.),(2.,3.),(1.,3.),(1.,2.),(0.,2.)]
 
-	triangles = EarClipping(pts)
+	#Holes are specified clockwise
+	holes = [[(0.25,0.25),(0.25,0.75),(0.75,0.75),(0.75,0.25)]]
+
+	pts, triangles = EarClipping(outer, holes)
 
 	#import pyshull
 	#triangles = pyshull.FlipTriangles(pts, triangles)
@@ -118,12 +148,13 @@ if __name__=="__main__":
 	print triangles
 
 	ptsArr = np.array(pts)
+	outerArr = np.array(outer)
 	plt.clf()
 	for tri in triangles:
 		triTemp = list(tri[:])
 		triTemp.append(tri[0])
 		plt.plot(ptsArr[triTemp,0], ptsArr[triTemp,1],'r-')
-	plt.plot(ptsArr[:,0], ptsArr[:,1],'g-')
+	plt.plot(outerArr[:,0], outerArr[:,1],'g-')
 	plt.show()
 
 
