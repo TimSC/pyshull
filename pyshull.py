@@ -157,36 +157,74 @@ def TriangleAngFromLengths(pts, distCache, pt1, pt2, pt3):
 	c = CalcDistCached(pts, pt3, pt1, distCache)
 	return CosineRuleAngle(a, b, c)
 
+def CalcTriangleAng(pts, distCache, pt1n, pt2n, pt3n):
+	#Angle is computed on pt3. pt1 and pt2 define the side opposite the angle
+
+	pt1 = pts[pt1n]
+	pt2 = pts[pt2n]
+	pt3 = pts[pt3n]
+
+	vec32 = (pt2[0]-pt3[0], pt2[1]-pt3[1])
+	vec31 = (pt1[0]-pt3[0], pt1[1]-pt3[1])
+
+	#Normalise
+	mag32 = (vec32[0]**2. + vec32[1]**2.) ** 0.5
+	mag31 = (vec31[0]**2. + vec31[1]**2.) ** 0.5
+
+	if mag32 == 0. or mag31 == 0.:
+		raise Exception("Angle not defined for zero area triangles")
+
+	vec32n = [c / mag32 for c in vec32]
+	vec31n = [c / mag31 for c in vec31]
+
+	print "n", vec32n, vec31n
+	
+	crossProd = vec32n[0] * vec31n[1] - vec32n[1] * vec31n[0]
+	print "crossProd", crossProd
+
+	ang = math.asin(crossProd)
+	print "a", ang
+	if ang < 0.:
+		ang += 2. * math.pi
+	test2 = TriangleAngFromLengths(pts, distCache, pt1n, pt2n, pt3n)
+	print "test", ang, test2
+	if test2 > ang:
+		print "dump", pt1, pt2, pt3
+	return abs(ang)
+
 def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache):
 	if triOrdered1 in angleCache:
 		ang1 = angleCache[triOrdered1]
 	else:
-		ang1 = TriangleAngFromLengths(pts, distCache, *triOrdered1)
+		print "ang1"
+		ang1 = CalcTriangleAng(pts, distCache, *triOrdered1)
 		angleCache[triOrdered1] = ang1
 
 	if triOrdered2 in angleCache:
 		ang2 = angleCache[triOrdered2]
 	else:
-		ang2 = TriangleAngFromLengths(pts, distCache, *triOrdered2)
+		print "ang2"
+		ang2 = CalcTriangleAng(pts, distCache, triOrdered2[1], triOrdered2[2], triOrdered2[0])
 		angleCache[triOrdered2] = ang2
 
 	angTotal = ang1 + ang2
+	#print ang1, ang2, angTotal
 	if angTotal > math.pi:
-		#print "Flip required", angTotal, triOrdered1, triOrdered2
+		print "Flip possibly required", angTotal, triOrdered1, triOrdered2
 
 		flipTri1 = (triOrdered1[2], triOrdered2[2], triOrdered1[1])
-		flipTri2 = (triOrdered2[2], triOrdered1[2], triOrdered1[0])
+		flipTri2 = (triOrdered2[2], triOrdered1[0], triOrdered1[2])
 
 		if flipTri1 in angleCache:
 			flipAng1 = angleCache[flipTri1]
 		else:
-			flipAng1 = TriangleAngFromLengths(pts, distCache, *flipTri1)
+			flipAng1 = CalcTriangleAng(pts, distCache, *flipTri1)
 			angleCache[flipTri1] = flipAng1
 
 		if flipTri2 in angleCache:
 			flipAng2 = angleCache[flipTri2]
 		else:
-			flipAng2 = TriangleAngFromLengths(pts, distCache, *flipTri2)
+			flipAng2 = CalcTriangleAng(pts, distCache, *flipTri2)
 			angleCache[flipTri2] = flipAng2
 
 		flipAngTotal = flipAng1 + flipAng2
@@ -274,8 +312,8 @@ def FlipTriangles(pts, triangles):
 			#print "original ind", tri1, tri2
 
 			#Reorder nodes so the common edge is the first two verticies
-			triOrdered1 = (tri1[triInd1[0]], tri1[triInd1[1]], tri1[triInd1[2]])
-			triOrdered2 = (tri2[triInd2[0]], tri2[triInd2[1]], tri2[triInd2[2]])
+			triOrdered1 = (tri1[triInd1[0]], tri1[triInd1[1]], tri1[triInd1[2]]) #1st and 2nd are common edge
+			triOrdered2 = (tri2[triInd2[0]], tri2[triInd2[2]], tri2[triInd2[1]]) #1st and 3rd are common edge
 			#print triOrdered1, triOrdered2
 
 			#Check if triangle flip is needed

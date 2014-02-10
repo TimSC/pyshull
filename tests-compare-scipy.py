@@ -42,6 +42,9 @@ if __name__ == "__main__":
 		#Generate random points
 		pts = np.random.rand(n, 2)
 
+		#plt.plot(pts[:,0], pts[:,1], 'x')
+		#plt.show()
+
 		#Align some of the points
 		for i in range(pts.shape[0]):
 			for j in range(pts.shape[1]):
