@@ -105,12 +105,35 @@ def IsPointInSegment(L1in, pt):
 		return True
 	return False
 
+def Check1DOverlap(range1, range2):
+	min1 = min(range1)
+	max1 = max(range1)
+	min2 = min(range2)
+	max2 = max(range2)
+	if min1 >= min2 and min1 <= max2: return True
+	if max1 >= min2 and max1 <= max2: return True
+	if min1 <= min2 and max1 >= max2: return True
+	return False
+
 def LineSegmentIntersection(L1in, L2in):
 
+	#Check if bounding boxes overlap
+	L1x = [p[0] for p in L1in]
+	L1y = [p[1] for p in L1in]
+	L2x = [p[0] for p in L2in]
+	L2y = [p[1] for p in L2in]
+	
+	if Check1DOverlap(L1x, L2x) is False:
+		return False
+	if Check1DOverlap(L1y, L2y) is False:
+		return False
+
+	#Find intersection assuming lines are infinitely long
 	infIntersect = InfiniteLineIntersection(L1in, L2in)
 	if infIntersect is False:
 		return False
 
+	#Find if intersection is in actual line segments
 	chk1 = IsPointInSegment(L1in, infIntersect)
 	if chk1 is False: return False
 	chk2 = IsPointInSegment(L2in, infIntersect)	
@@ -327,7 +350,7 @@ if __name__=="__main__":
 		triangles = pyshull.FlipTriangles(pts, revtris)
 		print "Mesh flipping done in", time.time() - startTime, "sec"
 
-	if 1:
+	if 0:
 		print triangles
 
 		import matplotlib.pyplot as plt
