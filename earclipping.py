@@ -186,12 +186,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 	visiblePoints.sort()
 	return visiblePoints
 
-
-def EarClipping(poly, holes):
-	#Based on Triangulation by Ear Clipping by David Eberly
-	
-	angleCache = {}
-	triangles = []
+def MergeHolesIntoOuterPoly(poly, holes):
 
 	workingPoly = range(len(poly))
 	pts = poly[:]
@@ -216,7 +211,9 @@ def EarClipping(poly, holes):
 		workingPoly, pts = MergeHoleIntoOuter(workingPoly, pts, foundCut[0], hole, foundCut[1])
 		#print "wp", workingPoly
 		#print "pts", pts
+	return workingPoly, pts
 
+def EarClippingNoHoles(workingPoly, pts):
 	if 0:
 		import matplotlib.pyplot as plt
 		import numpy as np
@@ -224,6 +221,9 @@ def EarClipping(poly, holes):
 		plt.clf()
 		plt.plot(ptsArr[workingPoly,0], ptsArr[workingPoly,1],'g-')
 		plt.show()
+
+	angleCache = {}
+	triangles = []
 
 	while len(workingPoly) > 3:
 		workingNodes = len(workingPoly)
@@ -278,6 +278,16 @@ def EarClipping(poly, holes):
 	triangles.append(workingPoly)
 	return pts, triangles
 
+
+def EarClipping(poly, holes):
+	#Based on Triangulation by Ear Clipping by David Eberly
+
+	workingPoly, pts = MergeHolesIntoOuterPoly(poly, holes)
+
+	pts, triangles = EarClippingNoHoles(workingPoly, pts)
+
+	return pts, triangles
+
 if __name__=="__main__":
 	
 	import numpy as np
@@ -285,16 +295,29 @@ if __name__=="__main__":
 	#pts = [(2.,1.),(4.,5.),(2.,0.),(0.,5.)]
 
 	#Polygon is defined in an anti-clockwise order
-	outer = [(0.,0.),(1.,0.),(1.,1.),(2.,1.),(5.,0.),(4.,2.),(4.,4.),(2.,4.),(2.,3.),(1.,3.),(1.,2.),(0.,2.)]
+	outer = [(0.,0.),(1.,0.),(1.,1.),
+		(1.1,1.),(1.1,1.7),(0.5,1.7),(0.5,1.8),(1.2,1.8),(1.2,1.),
+		(2.,1.),(5.,0.),(4.,2.),
+		(4.,2.1),(3.1,2.1),(3.1,0.9),(3.,0.9),(3.,2.2),(4.,2.2),
+		(4.,4.),(2.,4.),(2.,3.),(1.,3.),(1.,2.),(0.,2.)]
 
 	#Holes are specified clockwise
 	holes = [[(0.25,0.25),(0.25,0.75),(0.75,0.75),(0.75,0.25)],
 		[(3.25,3.25),(3.25,3.75),(3.75,3.75),(3.75,3.25)],
 		[(2.1,2.5),(2.5,2.9),(2.9,2.5),(2.5,2.1),]]
 
-	startTime = time.time()
-	pts, triangles = EarClipping(outer, holes)
-	print "Ear clipping done in", time.time() - startTime, "sec"
+	if 1:
+		startTime = time.time()
+		pts, triangles = EarClipping(outer, holes)
+		print "Ear clipping done in", time.time() - startTime, "sec"
+	else:
+		startTime = time.time()
+		workingPoly, pts = MergeHolesIntoOuterPoly(outer, holes)
+		print "MergeHolesIntoOuterPoly done in", time.time() - startTime, "sec"
+
+		startTime = time.time()
+		pts, triangles = EarClippingNoHoles(workingPoly, pts)
+		print "EarClippingNoHoles done in", time.time() - startTime, "sec"
 
 	if 1:
 		#Use delaunay flipping to improve mesh quality
