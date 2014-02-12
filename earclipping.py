@@ -214,7 +214,7 @@ def MergeHolesIntoOuterPoly(poly, holes):
 		#print "pts", pts
 	return workingPoly, pts
 
-def EarClippingNoHoles(workingPoly, pts):
+def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 	if 0:
 		import matplotlib.pyplot as plt
 		import numpy as np
@@ -255,7 +255,10 @@ def EarClippingNoHoles(workingPoly, pts):
 			#print "Found ear at node", nodeNum
 
 			#Store ear
-			triangles.append((workingPoly[prevNode], workingPoly[nodeNum], workingPoly[nextNode]))
+			if nodeOrder:
+				triangles.append((workingPoly[prevNode], workingPoly[nodeNum], workingPoly[nextNode]))
+			else:
+				triangles.append((workingPoly[prevNode], workingPoly[nextNode], workingPoly[nodeNum]))
 
 			#Remove ear from working poly
 			workingPoly.pop(nodeNum)
@@ -280,12 +283,12 @@ def EarClippingNoHoles(workingPoly, pts):
 	return pts, triangles
 
 
-def EarClipping(poly, holes):
+def EarClipping(poly, holes, nodeOrder = 1):
 	#Based on Triangulation by Ear Clipping by David Eberly
 
 	workingPoly, pts = MergeHolesIntoOuterPoly(poly, holes)
 
-	pts, triangles = EarClippingNoHoles(workingPoly, pts)
+	pts, triangles = EarClippingNoHoles(workingPoly, pts, nodeOrder)
 
 	return pts, triangles
 
@@ -317,7 +320,7 @@ if __name__=="__main__":
 		print "MergeHolesIntoOuterPoly done in", time.time() - startTime, "sec"
 
 		startTime = time.time()
-		pts, triangles = EarClippingNoHoles(workingPoly, pts)
+		pts, triangles = EarClippingNoHoles(workingPoly, pts, 1)
 		print "EarClippingNoHoles done in", time.time() - startTime, "sec"
 
 	if 1:
