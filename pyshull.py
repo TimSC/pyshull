@@ -317,6 +317,7 @@ def FlipTriangles(pts, triangles):
 
 			tri1 = triangles[edge[0]]
 			tri2 = triangles[edge[1]]
+
 			commonEdge = HasCommonEdge(tri1, tri2)
 			if commonEdge is None:
 				#print "err", tri1, tri2

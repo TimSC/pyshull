@@ -285,7 +285,10 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 		if not nodeFound:
 			raise Exception("Failed to find ear in polygon")
 
-	triangles.append(workingPoly)
+	if nodeOrder:
+		triangles.append(workingPoly)
+	else:
+		triangles.append(workingPoly[::-1])
 	return pts, triangles
 
 
@@ -318,7 +321,7 @@ if __name__=="__main__":
 
 	if 1:
 		startTime = time.time()
-		pts, triangles = EarClipping(outer, holes)
+		pts, triangles = EarClipping(outer, holes, 0)
 		print "Ear clipping done in", time.time() - startTime, "sec"
 	else:
 		startTime = time.time()
@@ -326,15 +329,14 @@ if __name__=="__main__":
 		print "MergeHolesIntoOuterPoly done in", time.time() - startTime, "sec"
 
 		startTime = time.time()
-		pts, triangles = EarClippingNoHoles(workingPoly, pts, 1)
+		pts, triangles = EarClippingNoHoles(workingPoly, pts, 0)
 		print "EarClippingNoHoles done in", time.time() - startTime, "sec"
 
 	if 1:
 		#Use delaunay flipping to improve mesh quality
 		import pyshull
-		revtris = [tri[::-1] for tri in triangles]
 		startTime = time.time()
-		triangles = pyshull.FlipTriangles(pts, revtris)
+		triangles = pyshull.FlipTriangles(pts, triangles)
 		print "Mesh flipping done in", time.time() - startTime, "sec"
 
 	if 1:
