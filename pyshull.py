@@ -298,7 +298,7 @@ def FlipTriangles(pts, triangles, nodeOrdering = None):
 		rhCheck = RightHandedCheck(pts, *tri)
 		if rhCheck < 0:
 			triangles[triNum] = tri[::-1]
-		if nodeOrdering == None:
+		if nodeOrdering == None and rhCheck != 0.:
 			nodeOrdering = (rhCheck > 0.)
 
 	#Catalog shared edges

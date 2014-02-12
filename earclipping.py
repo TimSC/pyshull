@@ -187,10 +187,32 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 	visiblePoints.sort()
 	return visiblePoints
 
+def CheckNodeWindingDirection(pts, poly):
+	#http://stackoverflow.com/a/1165943
+	#Calculate area of polygon, sign indicates winding direction
+	total = 0.
+	for i, ptNum in enumerate(poly):
+		currentPt = pts[ptNum]
+		nextPt = pts[poly[(i+1)%len(poly)]]
+		a = (nextPt[0]-currentPt[0])*(nextPt[1]+currentPt[1])
+		total += a
+	return total * 0.5
+
 def MergeHolesIntoOuterPoly(poly, holes):
 
-	workingPoly = range(len(poly))
-	pts = poly[:]
+	#Check outer polygon node order
+	if CheckNodeWindingDirection(poly, range(len(poly))) > 0.:
+		workingPoly = range(len(poly))[::-1]
+		pts = poly[:]
+	else:
+		workingPoly = range(len(poly))
+		pts = poly[:]
+
+	#Check holes node order
+	holes = holes[:]
+	for holeNum, hole in enumerate(holes):
+		if CheckNodeWindingDirection(hole, range(len(hole))) < 0.:
+			holes[holeNum] = hole[::-1]
 
 	for holeNum, hole in enumerate(holes):
 		#Find place to make cut
@@ -307,17 +329,21 @@ if __name__=="__main__":
 	import time
 	#pts = [(2.,1.),(4.,5.),(2.,0.),(0.,5.)]
 
-	#Polygon is defined in an anti-clockwise order
+	#Specify test shape
 	outer = [(0.,0.),(1.,0.),(1.,1.),
 		(1.1,1.),(1.1,1.7),(0.5,1.7),(0.5,1.8),(1.2,1.8),(1.2,1.),
 		(2.,1.),(5.,0.),(4.,2.),
 		(4.,2.1),(3.1,2.1),(3.1,0.9),(3.,0.9),(3.,2.2),(4.,2.2),
 		(4.,4.),(2.,4.),(2.,3.),(1.,3.),(1.,2.),(0.,2.)]
 
-	#Holes are specified clockwise
+	#outer = outer[::-1]
+
 	holes = [[(0.25,0.25),(0.25,0.75),(0.75,0.75),(0.75,0.25)],
 		[(3.25,3.25),(3.25,3.75),(3.75,3.75),(3.75,3.25)],
 		[(2.1,2.5),(2.5,2.9),(2.9,2.5),(2.5,2.1),]]
+
+	#for i, h in enumerate(holes):
+	#	holes[i] = h[::-1]
 
 	nodeOrder = 1
 
