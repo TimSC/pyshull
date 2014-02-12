@@ -133,12 +133,7 @@ def LineSegmentIntersection(L1in, L2in):
 	if infIntersect is False:
 		return False
 
-	#Find if intersection is in actual line segments
-	chk1 = IsPointInSegment(L1in, infIntersect)
-	if chk1 is False: return False
-	chk2 = IsPointInSegment(L2in, infIntersect)	
-
-	return chk1 and chk2
+	return True
 
 def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 	visiblePoints = []
