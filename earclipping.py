@@ -319,9 +319,11 @@ if __name__=="__main__":
 		[(3.25,3.25),(3.25,3.75),(3.75,3.75),(3.75,3.25)],
 		[(2.1,2.5),(2.5,2.9),(2.9,2.5),(2.5,2.1),]]
 
+	nodeOrder = 1
+
 	if 1:
 		startTime = time.time()
-		pts, triangles = EarClipping(outer, holes, 0)
+		pts, triangles = EarClipping(outer, holes, nodeOrder)
 		print "Ear clipping done in", time.time() - startTime, "sec"
 	else:
 		startTime = time.time()
@@ -329,7 +331,7 @@ if __name__=="__main__":
 		print "MergeHolesIntoOuterPoly done in", time.time() - startTime, "sec"
 
 		startTime = time.time()
-		pts, triangles = EarClippingNoHoles(workingPoly, pts, 0)
+		pts, triangles = EarClippingNoHoles(workingPoly, pts, nodeOrder)
 		print "EarClippingNoHoles done in", time.time() - startTime, "sec"
 
 	if 1:
