@@ -3,7 +3,7 @@ pyshull
 
 pyshull.py : S-Hull Delaunay triangulation implemented in pure Python. Based on S-hull: a fast sweep-hull routine for Delaunay triangulation by David Sinclair. This implementation is 10-100 times slower than the reported results of S-HULL implemented in C.
 
-earclipping.py : Based on Triangulation by Ear Clipping by David Eberly. Triangularisation of a simple polygon
+earclipping.py : Based on Triangulation by Ear Clipping by David Eberly. Triangularisation of a simple polygon (no self intersections) with holes.
 
 Copyright (c) 2014, Tim Sheerman-Chase
 
