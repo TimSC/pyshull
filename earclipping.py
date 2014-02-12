@@ -88,23 +88,6 @@ def InfiniteLineIntersection(L1in, L2in):
 	else:
 		return False
 
-def IsPointInSegment(L1in, pt):
-	#Check if intersection is in L1 segment
-	vecL1 = L1in[1][0] - L1in[0][0], L1in[1][1] - L1in[0][1]
-	vecAtoI = pt[0] - L1in[0][0], pt[1] - L1in[0][1]
-	magVecL1 = (vecL1[0]**2. + vecL1[1]**2.) ** 0.5
-	#magVecAtoI = (vecAtoI[0]**2. + vecAtoI[1]**2.) ** 0.5
-	if magVecL1 == 0.:
-		raise RuntimeError("Zero length input line")
-	#if magVecAtoI == 0.:
-	#	return True
-
-	vecL1n = (vecL1[0] / magVecL1, vecL1[1] / magVecL1)
-	dotProd = vecL1n[0] * vecAtoI[0] + vecL1n[1] * vecAtoI[1]
-	if dotProd >= 0. and dotProd < magVecL1:
-		return True
-	return False
-
 def Check1DOverlap(range1, range2):
 	min1 = min(range1)
 	max1 = max(range1)
