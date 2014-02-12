@@ -228,6 +228,8 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 
 	while len(workingPoly) > 3:
 		workingNodes = len(workingPoly)
+		nodeFound = False
+
 		for nodeNum in range(workingNodes):
 			prevNode = (nodeNum - 1) % workingNodes
 			nextNode = (nodeNum + 1) % workingNodes
@@ -252,6 +254,7 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 			if foundNode:
 				continue
 		
+			nodeFound = True
 			#print "Found ear at node", nodeNum
 
 			#Store ear
@@ -278,6 +281,9 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 				plt.show()
 
 			break
+
+		if not nodeFound:
+			raise Exception("Failed to find ear in polygon")
 
 	triangles.append(workingPoly)
 	return pts, triangles
