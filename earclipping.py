@@ -237,6 +237,7 @@ def MergeHolesIntoOuterPoly(poly, holes):
 	return workingPoly, pts
 
 def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
+
 	if 0:
 		import matplotlib.pyplot as plt
 		import numpy as np
@@ -244,6 +245,10 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 		plt.clf()
 		plt.plot(ptsArr[workingPoly,0], ptsArr[workingPoly,1],'g-')
 		plt.show()
+
+	#Check outer polygon node order
+	if CheckNodeWindingDirection(pts, workingPoly) > 0.:
+		workingPoly = workingPoly[::-1]
 
 	angleCache = {}
 	triangles = []
