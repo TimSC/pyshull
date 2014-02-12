@@ -291,15 +291,15 @@ def AddTriangleToCommonEdges(sharedEdges, triangles, triNum):
 			sharedEdges[edgeId] = []
 		sharedEdges[edgeId].append(triNum)
 
-def FlipTriangles(pts, triangles):
+def FlipTriangles(pts, triangles, nodeOrdering = None):
 
 	#Set all triangle windings the same way
 	for triNum, tri in enumerate(triangles):
 		rhCheck = RightHandedCheck(pts, *tri)
 		if rhCheck < 0:
 			triangles[triNum] = tri[::-1]
-		if triNum == 0:
-			firstTriOrder = (rhCheck > 0.)
+		if nodeOrdering == None:
+			nodeOrdering = (rhCheck > 0.)
 
 	#Catalog shared edges
 	sharedEdges = {}
@@ -386,7 +386,7 @@ def FlipTriangles(pts, triangles):
 		if count == 0:
 			running = False
 
-	if firstTriOrder is False:
+	if nodeOrdering is False:
 		#Reverse order of triangles to match input node order		
 		for triNum, tri in enumerate(triangles):
 			triangles[triNum] = tri[::-1]		
