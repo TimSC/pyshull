@@ -93,6 +93,7 @@ def Check1DOverlap(range1, range2):
 	max1 = max(range1)
 	min2 = min(range2)
 	max2 = max(range2)
+	#print min1, max1, min2, max2
 	if min1 >= min2 and min1 <= max2: return True
 	if max1 >= min2 and max1 <= max2: return True
 	if min1 <= min2 and max1 >= max2: return True
@@ -111,7 +112,7 @@ def IsPointInSegment(L1in, pt):
 
 	vecL1n = (vecL1[0] / magVecL1, vecL1[1] / magVecL1)
 	dotProd = vecL1n[0] * vecAtoI[0] + vecL1n[1] * vecAtoI[1]
-	if dotProd >= 0. and dotProd < magVecL1:
+	if dotProd >= 0. and dotProd <= magVecL1:
 		return True
 	return False
 
@@ -124,8 +125,10 @@ def LineSegmentIntersection(L1in, L2in):
 	L2y = [p[1] for p in L2in]
 	
 	if Check1DOverlap(L1x, L2x) is False:
+		#print "fail x"
 		return False
 	if Check1DOverlap(L1y, L2y) is False:
+		#print "fail y"
 		return False
 
 	#Find intersection assuming lines are infinitely long
