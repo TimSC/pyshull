@@ -26,10 +26,10 @@ if __name__=="__main__":
 	CheckResult(True, val, "Node touching line")
 
 	#Nearby non-touching line
-	val = earclipping.LineSegmentIntersection(((0.,0.),(10.,10.)),((7.,2.),(-5.,10.)))
+	val = earclipping.LineSegmentIntersection(((0.,0.),(10.,10.)),((2.,7.),(-5.,10.)))
 	CheckResult(False, val, "Nearby non-touching line")
 
 	#Horizontal and vertical non-touching lines
 	val = earclipping.LineSegmentIntersection(((0.,0.),(10.,0.)),((20.,-10.),(20.,10.)))
-	CheckResult(False, val, "Nearby non-touching line")
+	CheckResult(False, val, "Horizontal and vertical non-touching lines")
 
