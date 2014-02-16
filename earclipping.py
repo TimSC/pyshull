@@ -323,7 +323,7 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 			#Remove ear from working poly
 			workingPoly.pop(nodeNum)
 
-			if debug:# and len(workingPoly) < 10:
+			if debug:
 				print workingPoly
 				import matplotlib.pyplot as plt
 				import numpy as np
@@ -349,9 +349,35 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 		triangles.append(workingPoly[::-1])
 	return pts, triangles
 
+def ValidateShapeData(poly, holes):
+	if len(poly) < 3:
+		raise ValueError("At least three points are required in outer polygon")
+
+	prevPts = set()
+	for p in poly:
+		p = tuple(p)
+		if p in prevPts:
+			raise ValueError("Duplicate point in outer polygon")
+		prevPts.add(p)
+
+	innerPts = set()	
+	for hole in holes:
+		if len(poly) < 3:
+			raise ValueError("At least three points are required in inner polygon")
+
+		for p in hole:
+			p = tuple(p)
+			if p in prevPts:
+				raise ValueError("Inner polygon point touches outer polygon point")
+			if p in innerPts:
+				raise ValueError("Duplicate inner polygon point")
+			innerPts.add(p)
+
+	return True
 
 def EarClipping(poly, holes, nodeOrder = 1, debug = 0):
 	#Based on Triangulation by Ear Clipping by David Eberly
+	ValidateShapeData(poly, holes)
 
 	workingPoly, pts = MergeHolesIntoOuterPoly(poly, holes)
 
