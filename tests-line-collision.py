@@ -33,3 +33,8 @@ if __name__=="__main__":
 	val = earclipping.LineSegmentIntersection(((0.,0.),(10.,0.)),((20.,-10.),(20.,10.)))
 	CheckResult(False, val, "Horizontal and vertical non-touching lines")
 
+	#Add troublesome real example #1
+	commonPt = (243.15634513052646, 200.78910711687058)
+	val = earclipping.LineSegmentIntersection(((247.27367794327438, 198.35831062297802), commonPt),(commonPt, (243.15231527818833, 200.37556044757366)))
+	CheckResult(True, val, "Real line example #1")
+
