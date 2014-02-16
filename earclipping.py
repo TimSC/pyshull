@@ -265,9 +265,9 @@ def MergeHolesIntoOuterPoly(poly, holes):
 		#print "pts", pts
 	return workingPoly, pts
 
-def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
+def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 
-	if 1:
+	if debug:
 		import matplotlib.pyplot as plt
 		import numpy as np
 		ptsArr = np.array(pts)
@@ -322,7 +322,8 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 			#Remove ear from working poly
 			workingPoly.pop(nodeNum)
 
-			if 1:
+			if debug:# and len(workingPoly) < 10:
+				print workingPoly
 				import matplotlib.pyplot as plt
 				import numpy as np
 				ptsArr = np.array(pts)
@@ -332,7 +333,7 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 					triTemp = list(tri[:])
 					triTemp.append(tri[0])
 					#print triTemp
-					plt.plot(ptsArr[triTemp,0], ptsArr[triTemp,1],'r-')
+					#plt.plot(ptsArr[triTemp,0], ptsArr[triTemp,1],'r-')
 				plt.plot(ptsArr[workingPoly,0], ptsArr[workingPoly,1],'g-')
 				plt.show()
 
@@ -348,12 +349,12 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 	return pts, triangles
 
 
-def EarClipping(poly, holes, nodeOrder = 1):
+def EarClipping(poly, holes, nodeOrder = 1, debug = 0):
 	#Based on Triangulation by Ear Clipping by David Eberly
 
 	workingPoly, pts = MergeHolesIntoOuterPoly(poly, holes)
 
-	pts, triangles = EarClippingNoHoles(workingPoly, pts, nodeOrder)
+	pts, triangles = EarClippingNoHoles(workingPoly, pts, nodeOrder, debug)
 
 	return pts, triangles
 
