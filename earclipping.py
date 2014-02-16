@@ -224,6 +224,10 @@ def CheckNodeWindingDirection(pts, poly):
 
 def MergeHolesIntoOuterPoly(poly, holes):
 
+	#print "o", CheckNodeWindingDirection(poly, range(len(poly)))
+	#for holeNum, hole in enumerate(holes):
+	#	print "i", CheckNodeWindingDirection(hole, range(len(hole)))
+
 	#Check outer polygon node order
 	if CheckNodeWindingDirection(poly, range(len(poly))) > 0.:
 		workingPoly = range(len(poly))[::-1]
@@ -237,6 +241,12 @@ def MergeHolesIntoOuterPoly(poly, holes):
 	for holeNum, hole in enumerate(holes):
 		if CheckNodeWindingDirection(hole, range(len(hole))) < 0.:
 			holes[holeNum] = hole[::-1]
+		else:
+			holes[holeNum] = hole[:]
+
+	#print "o", CheckNodeWindingDirection(pts, workingPoly)
+	#for holeNum, hole in enumerate(holes):
+	#	print "i", CheckNodeWindingDirection(hole, range(len(hole)))
 
 	for holeNum, hole in enumerate(holes):
 		#Find place to make cut
@@ -262,7 +272,7 @@ def MergeHolesIntoOuterPoly(poly, holes):
 
 def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 
-	if 0:
+	if 1:
 		import matplotlib.pyplot as plt
 		import numpy as np
 		ptsArr = np.array(pts)
@@ -317,7 +327,7 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1):
 			#Remove ear from working poly
 			workingPoly.pop(nodeNum)
 
-			if 0:
+			if 1:
 				import matplotlib.pyplot as plt
 				import numpy as np
 				ptsArr = np.array(pts)
