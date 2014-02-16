@@ -100,21 +100,15 @@ def Check1DOverlap(range1, range2):
 	return False
 
 def IsPointInSegment(L1in, pt):
-	#Check if intersection is in L1 segment
-	vecL1 = L1in[1][0] - L1in[0][0], L1in[1][1] - L1in[0][1]
-	vecAtoI = pt[0] - L1in[0][0], pt[1] - L1in[0][1]
-	magVecL1 = (vecL1[0]**2. + vecL1[1]**2.) ** 0.5
-	#magVecAtoI = (vecAtoI[0]**2. + vecAtoI[1]**2.) ** 0.5
-	if magVecL1 == 0.:
-		raise RuntimeError("Zero length input line")
-	#if magVecAtoI == 0.:
-	#	return True
 
-	vecL1n = (vecL1[0] / magVecL1, vecL1[1] / magVecL1)
-	dotProd = vecL1n[0] * vecAtoI[0] + vecL1n[1] * vecAtoI[1]
-	if dotProd >= 0. and dotProd <= magVecL1:
-		return True
-	return False
+	xvals = [p[0] for p in L1in]	
+
+	if pt[0] < min(xvals): return False
+	if pt[0] > max(xvals): return False
+	yvals = [p[1] for p in L1in]
+	if pt[1] < min(yvals): return False
+	if pt[1] > max(yvals): return False
+	return True
 
 def LineSegmentIntersection(L1in, L2in):
 
@@ -123,7 +117,14 @@ def LineSegmentIntersection(L1in, L2in):
 	L1y = [p[1] for p in L1in]
 	L2x = [p[0] for p in L2in]
 	L2y = [p[1] for p in L2in]
-	
+
+	#Added end of line comparisons
+	#This improves stability but is it the correct approach?
+	if L1in[0] == L2in[0]: return True
+	if L1in[0] == L2in[1]: return True
+	if L1in[1] == L2in[0]: return True
+	if L1in[1] == L2in[1]: return True
+
 	if Check1DOverlap(L1x, L2x) is False:
 		#print "fail x"
 		return False
@@ -135,8 +136,8 @@ def LineSegmentIntersection(L1in, L2in):
 	infIntersect = InfiniteLineIntersection(L1in, L2in)
 	if infIntersect is False:
 		return False
-
 	chk1 = IsPointInSegment(L1in, infIntersect)
+
 	if chk1 is False: return False
 	chk2 = IsPointInSegment(L2in, infIntersect)	
 
@@ -161,9 +162,11 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 		blocked = False
 		for edgeStart, edgeStartPt in enumerate(poly):
 			edgeEnd = (edgeStart + 1) % len(poly)
-			if poly[edgeStart] == ptNum: continue
-			if poly[edgeEnd] == ptNum: continue
+			if edgeStart == ptIndex: continue
+			if edgeEnd == ptIndex: continue
 			ret = LineSegmentIntersection((ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]]))
+			#print ptIndex, edgeStart, edgeEnd, ret
+			#print (ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]])
 			if ret is not False:
 				blocked=True
 				break
@@ -224,10 +227,6 @@ def CheckNodeWindingDirection(pts, poly):
 
 def MergeHolesIntoOuterPoly(poly, holes):
 
-	#print "o", CheckNodeWindingDirection(poly, range(len(poly)))
-	#for holeNum, hole in enumerate(holes):
-	#	print "i", CheckNodeWindingDirection(hole, range(len(hole)))
-
 	#Check outer polygon node order
 	if CheckNodeWindingDirection(poly, range(len(poly))) > 0.:
 		workingPoly = range(len(poly))[::-1]
@@ -243,10 +242,6 @@ def MergeHolesIntoOuterPoly(poly, holes):
 			holes[holeNum] = hole[::-1]
 		else:
 			holes[holeNum] = hole[:]
-
-	#print "o", CheckNodeWindingDirection(pts, workingPoly)
-	#for holeNum, hole in enumerate(holes):
-	#	print "i", CheckNodeWindingDirection(hole, range(len(hole)))
 
 	for holeNum, hole in enumerate(holes):
 		#Find place to make cut
