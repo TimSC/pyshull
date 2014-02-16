@@ -153,7 +153,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 	for ptIndex, ptNum in enumerate(poly):
 		dist = ((ptCoord[0] - pts[poly[ptIndex]][0])**2.+(ptCoord[1] - pts[poly[ptIndex]][1])**2.)**0.5
 		ptsByDist.append((dist, ptIndex))
-	sorted(ptsByDist)
+	ptsByDist.sort()
 
 	#Check each point
 	for dist, ptIndex in ptsByDist:
@@ -256,6 +256,7 @@ def MergeHolesIntoOuterPoly(poly, holes):
 				elif visible[0][0] < foundCut[2]:
 					#Use nearer point
 					foundCut = (visible[0][1], holdPtNum, visible[0][0])
+					#print "better cut found", holeNum, holdPtNum, visible
 
 		if foundCut is None:
 			raise RuntimeError("Failed to join hole to other polygon")
