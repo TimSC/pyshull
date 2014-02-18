@@ -375,7 +375,7 @@ def ValidateShapeData(poly, holes):
 
 	return True
 
-def EarClipping(poly, holes, nodeOrder = 1, debug = 0):
+def EarClipping(poly, holes = [], nodeOrder = 1, debug = 0):
 	#Based on Triangulation by Ear Clipping by David Eberly
 	ValidateShapeData(poly, holes)
 
