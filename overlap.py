@@ -1,4 +1,7 @@
 
+#Polygon, point and line overlap functions
+#by Tim Sheerman-Chase, 2014
+
 def PointInSideTriangle(pt, tri, winding = None):
 	if winding is None:
 		winding = GetWindingDirection(tri)

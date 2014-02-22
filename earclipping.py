@@ -1,5 +1,5 @@
 import math
-import trianglecollision
+import overlap
 
 def CalcTriangleAng(pts, angleCache, pt1, pt2, pt3):
 
@@ -82,7 +82,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 			edgeEnd = (edgeStart + 1) % len(poly)
 			if edgeStart == ptIndex: continue
 			if edgeEnd == ptIndex: continue
-			ret = trianglecollision.LineSegmentIntersection((ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]]))
+			ret = overlap.LineSegmentIntersection((ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]]))
 			#print ptIndex, edgeStart, edgeEnd, ret
 			#print (ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]])
 			if ret is not False:
@@ -97,7 +97,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 			nextPtNum = (holePtNum + 1) % len(holeShape)
 			if holePtNum == holeInd: continue
 			if nextPtNum == holeInd: continue
-			ret = trianglecollision.LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
+			ret = overlap.LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
 			#print ptIndex, holeInd, holePtNum, nextPtNum, ret
 			if ret is not False:
 				#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
@@ -115,7 +115,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 				nextPtNum = (holePtNum + 1) % len(holeShape)
 				if holePtNum == holeInd: continue
 				if nextPtNum == holeInd: continue
-				ret = trianglecollision.LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
+				ret = overlap.LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
 				#print ptIndex, holeInd, holePtNum, nextPtNum, ret
 				if ret is not False:
 					#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
@@ -227,7 +227,7 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 				node2Dat = workingPoly[nodeNum2]
 
 				tri = [pts[prevNodeDat], pts[currentNodeDat], pts[nextNodeDat]]
-				triHit = trianglecollision.DoPointCollideTriangle(pts[node2Dat], tri, 1.)
+				triHit = overlap.DoPointCollideTriangle(pts[node2Dat], tri, 1.)
 				if triHit:
 					foundNode = True
 
