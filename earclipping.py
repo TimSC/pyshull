@@ -61,84 +61,6 @@ def MergeHoleIntoOuter(workingPoly, pts, outerInd, hole, holeInd):
 
 	return filterWorkingPoly, filteredPts
 
-def line(p1, p2):
-	p1 = map(float, p1)
-	p2 = map(float, p2)
-	A = (p1[1] - p2[1])
-	B = (p2[0] - p1[0])
-	C = (p1[0]*p2[1] - p2[0]*p1[1])
-	return A, B, -C
-
-def InfiniteLineIntersection(L1in, L2in):
-	#Based on http://stackoverflow.com/a/20679579
-	L1 = line(*L1in)
-	L2 = line(*L2in)
-	
-	D  = L1[0] * L2[1] - L1[1] * L2[0]
-	Dx = L1[2] * L2[1] - L1[1] * L2[2]
-	Dy = L1[0] * L2[2] - L1[2] * L2[0]
-	if D != 0:
-		x = Dx / D
-		y = Dy / D
-		return x,y
-	else:
-		return False
-
-def Check1DOverlap(range1, range2):
-	min1 = min(range1)
-	max1 = max(range1)
-	min2 = min(range2)
-	max2 = max(range2)
-	#print min1, max1, min2, max2
-	if min1 >= min2 and min1 <= max2: return True
-	if max1 >= min2 and max1 <= max2: return True
-	if min1 <= min2 and max1 >= max2: return True
-	return False
-
-def IsPointInSegment(L1in, pt):
-
-	xvals = [p[0] for p in L1in]	
-
-	if pt[0] < min(xvals): return False
-	if pt[0] > max(xvals): return False
-	yvals = [p[1] for p in L1in]
-	if pt[1] < min(yvals): return False
-	if pt[1] > max(yvals): return False
-	return True
-
-def LineSegmentIntersection(L1in, L2in):
-
-	#Check if bounding boxes overlap
-	L1x = [p[0] for p in L1in]
-	L1y = [p[1] for p in L1in]
-	L2x = [p[0] for p in L2in]
-	L2y = [p[1] for p in L2in]
-
-	#Added end of line comparisons
-	#This improves stability but is it the correct approach?
-	if L1in[0] == L2in[0]: return True
-	if L1in[0] == L2in[1]: return True
-	if L1in[1] == L2in[0]: return True
-	if L1in[1] == L2in[1]: return True
-
-	if Check1DOverlap(L1x, L2x) is False:
-		#print "fail x"
-		return False
-	if Check1DOverlap(L1y, L2y) is False:
-		#print "fail y"
-		return False
-
-	#Find intersection assuming lines are infinitely long
-	infIntersect = InfiniteLineIntersection(L1in, L2in)
-	if infIntersect is False:
-		return False
-	chk1 = IsPointInSegment(L1in, infIntersect)
-
-	if chk1 is False: return False
-	chk2 = IsPointInSegment(L2in, infIntersect)	
-
-	return chk1 and chk2
-
 def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 	visiblePoints = []
 	#print "holeShape", holeShape
@@ -160,7 +82,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 			edgeEnd = (edgeStart + 1) % len(poly)
 			if edgeStart == ptIndex: continue
 			if edgeEnd == ptIndex: continue
-			ret = LineSegmentIntersection((ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]]))
+			ret = trianglecollision.LineSegmentIntersection((ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]]))
 			#print ptIndex, edgeStart, edgeEnd, ret
 			#print (ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]])
 			if ret is not False:
@@ -175,7 +97,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 			nextPtNum = (holePtNum + 1) % len(holeShape)
 			if holePtNum == holeInd: continue
 			if nextPtNum == holeInd: continue
-			ret = LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
+			ret = trianglecollision.LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
 			#print ptIndex, holeInd, holePtNum, nextPtNum, ret
 			if ret is not False:
 				#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
@@ -193,7 +115,7 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 				nextPtNum = (holePtNum + 1) % len(holeShape)
 				if holePtNum == holeInd: continue
 				if nextPtNum == holeInd: continue
-				ret = LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
+				ret = trianglecollision.LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
 				#print ptIndex, holeInd, holePtNum, nextPtNum, ret
 				if ret is not False:
 					#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
@@ -305,7 +227,7 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 				node2Dat = workingPoly[nodeNum2]
 
 				tri = [pts[prevNodeDat], pts[currentNodeDat], pts[nextNodeDat]]
-				triHit = trianglecollision.PointInSideTriangle(pts[node2Dat], tri, 1.)
+				triHit = trianglecollision.DoPointCollideTriangle(pts[node2Dat], tri, 1.)
 				if triHit:
 					foundNode = True
 
