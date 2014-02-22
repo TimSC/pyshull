@@ -1,4 +1,5 @@
 import math
+import trianglecollision
 
 def CalcTriangleAng(pts, angleCache, pt1, pt2, pt3):
 
@@ -37,11 +38,6 @@ def CalcTriangleAng(pts, angleCache, pt1, pt2, pt3):
 
 	angleCache[angId] = trigAng
 	return trigAng
-
-def RightHandedCheck(pts, pt1, pt2, pt3):
-	vec21 = (pts[pt1][0] - pts[pt2][0], pts[pt1][1] - pts[pt2][1])
-	vec23 = (pts[pt3][0] - pts[pt2][0], pts[pt3][1] - pts[pt2][1])
-	return vec21[0] * vec23[1] - vec21[1] * vec23[0]
 
 def MergeHoleIntoOuter(workingPoly, pts, outerInd, hole, holeInd):
 	#Outer polygon before cut
@@ -301,16 +297,16 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 			#Check if nodes are in this ear
 			foundNode = False
 			for nodeNum2 in range(workingNodes):
+
+				if workingPoly[nodeNum2] in [workingPoly[prevNode], workingPoly[nodeNum], workingPoly[nextNode]]: continue
 				prevNodeDat = workingPoly[prevNode]
 				currentNodeDat = workingPoly[nodeNum]
 				nextNodeDat = workingPoly[nextNode]
 				node2Dat = workingPoly[nodeNum2]
 
-				if workingPoly[nodeNum2] in [workingPoly[prevNode], workingPoly[nodeNum], workingPoly[nextNode]]: continue
-				chk1 = RightHandedCheck(pts, prevNodeDat, currentNodeDat, node2Dat)
-				chk2 = RightHandedCheck(pts, currentNodeDat, nextNodeDat, node2Dat)
-				chk3 = RightHandedCheck(pts, nextNodeDat, prevNodeDat, node2Dat)
-				if chk1 <= 0. and chk2 <= 0. and chk3 <= 0.:
+				tri = [pts[prevNodeDat], pts[currentNodeDat], pts[nextNodeDat]]
+				triHit = trianglecollision.PointInSideTriangle(pts[node2Dat], tri, 1.)
+				if triHit:
 					foundNode = True
 
 				#print "chk", nodeNum2, chk1, chk2, chk3
