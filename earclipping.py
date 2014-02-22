@@ -264,6 +264,7 @@ def MergeHolesIntoOuterPoly(poly, holes):
 		workingPoly, pts = MergeHoleIntoOuter(workingPoly, pts, foundCut[0], hole, foundCut[1])
 		#print "wp", workingPoly
 		#print "pts", pts
+
 	return workingPoly, pts
 
 def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
@@ -300,10 +301,15 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 			#Check if nodes are in this ear
 			foundNode = False
 			for nodeNum2 in range(workingNodes):
+				prevNodeDat = workingPoly[prevNode]
+				currentNodeDat = workingPoly[nodeNum]
+				nextNodeDat = workingPoly[nextNode]
+				node2Dat = workingPoly[nodeNum2]
+
 				if workingPoly[nodeNum2] in [workingPoly[prevNode], workingPoly[nodeNum], workingPoly[nextNode]]: continue
-				chk1 = RightHandedCheck(pts, workingPoly[prevNode], workingPoly[nodeNum], workingPoly[nodeNum2])
-				chk2 = RightHandedCheck(pts, workingPoly[nodeNum], workingPoly[nextNode], workingPoly[nodeNum2])
-				chk3 = RightHandedCheck(pts, workingPoly[nextNode], workingPoly[prevNode], workingPoly[nodeNum2])
+				chk1 = RightHandedCheck(pts, prevNodeDat, currentNodeDat, node2Dat)
+				chk2 = RightHandedCheck(pts, currentNodeDat, nextNodeDat, node2Dat)
+				chk3 = RightHandedCheck(pts, nextNodeDat, prevNodeDat, node2Dat)
 				if chk1 <= 0. and chk2 <= 0. and chk3 <= 0.:
 					foundNode = True
 
