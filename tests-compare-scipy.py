@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 import matplotlib.pyplot as plt
 import pyshull, sys, time, pickle, random
 import numpy as np
@@ -74,25 +74,25 @@ if __name__ == "__main__":
 
 		startTime = time.time()
 		triangles = pyshull.PySHull(pts)
-		print "pyqhull Processed", n, "points in", time.time() - startTime, "sec"
+		print("pyqhull Processed", n, "points in", time.time() - startTime, "sec")
 
 		startTime = time.time()
 		triangles2 = spatial.Delaunay(pts).simplices
-		print "scipy Processed", n, "points in", time.time() - startTime, "sec"
+		print("scipy Processed", n, "points in", time.time() - startTime, "sec")
 		
 		for tri in triangles:
 			area = HeronsFormula(pts, tri)
 			if area == 0.:
-				print "Problem: Zero size triangle"
+				print("Problem: Zero size triangle")
 				pickle.dump(pts, open("problem{0}.dat".format(problemCount),"wb"), protocol=-1)
 				problemCount += 1
 
-		#print triangles
+		#print(triangles)
 		compare, probIndex = CompareTriangleLists(triangles, triangles2)
 		compare2, probIndex2 = CompareTriangleLists(triangles2, triangles)
 		
 		if compare + compare2 < 2.:
-			print "Problem detected", compare, compare2, len(triangles), len(triangles2)
+			print("Problem detected", compare, compare2, len(triangles), len(triangles2))
 			plt.clf()
 			plt.subplot(211)
 			plt.xlim([-0.1, 1.1])
@@ -102,8 +102,8 @@ if __name__ == "__main__":
 				tri2.append(tri[0])
 				col = 'g-'
 				if triNum in probIndex: 
-					print "p1", triNum, tri, HeronsFormula(pts, tri)
-					#print "z1", pts[tri2,0], pts[tri2,1]
+					print("p1", triNum, tri, HeronsFormula(pts, tri))
+					#print("z1", pts[tri2,0], pts[tri2,1])
 					col = "r-"
 				plt.plot(pts[tri2,0], pts[tri2,1], col)
 
@@ -117,8 +117,8 @@ if __name__ == "__main__":
 				tri2.append(tri[0])
 				col = 'g-'
 				if triNum in probIndex2: 
-					print "p2", triNum, tri, HeronsFormula(pts, tri)
-					#print "z2", pts[tri2,0], pts[tri2,1]
+					print("p2", triNum, tri, HeronsFormula(pts, tri))
+					#print("z2", pts[tri2,0], pts[tri2,1])
 					col = "r-"
 
 				plt.plot(pts[tri2,0], pts[tri2,1], col)
@@ -130,5 +130,5 @@ if __name__ == "__main__":
 
 			problemCount += 1
 
-		print "Problems found", problemCount
+		print("Problems found", problemCount)
 

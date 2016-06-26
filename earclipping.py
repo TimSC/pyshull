@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 import overlap
 
@@ -27,8 +28,8 @@ def CalcTriangleAng(pts, angleCache, pt1, pt2, pt3):
 	if dotProd > 1.: dotProd = 1.
 	if dotProd < -1.: dotProd = -1.
 
-	#print crossProd < 0., crossProd
-	#print math.asin(crossProd), math.acos(dotProd), cosAng
+	#print(crossProd < 0., crossProd)
+	#print(math.asin(crossProd), math.acos(dotProd), cosAng)
 	if crossProd < 0.:
 		#Reflex angle detected
 		trigAng = 2. * math.pi - math.acos(dotProd)
@@ -41,7 +42,7 @@ def CalcTriangleAng(pts, angleCache, pt1, pt2, pt3):
 
 def MergeHoleIntoOuter(workingPoly, pts, outerInd, hole, holeInd):
 	#Outer polygon before cut
-	filterWorkingPoly = workingPoly[:outerInd+1]
+	filterWorkingPoly = list(workingPoly[:outerInd+1])
 	filteredPts = pts[:]
 
 	#Reorder hole
@@ -63,7 +64,7 @@ def MergeHoleIntoOuter(workingPoly, pts, outerInd, hole, holeInd):
 
 def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 	visiblePoints = []
-	#print "holeShape", holeShape
+	#print("holeShape", holeShape)
 	ptCoord = holes[holeNum][holeInd]
 
 	#Order points by distance
@@ -83,8 +84,8 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 			if edgeStart == ptIndex: continue
 			if edgeEnd == ptIndex: continue
 			ret = overlap.LineSegmentIntersection((ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]]))
-			#print ptIndex, edgeStart, edgeEnd, ret
-			#print (ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]])
+			#print(ptIndex, edgeStart, edgeEnd, ret)
+			#print((ptCoord, pts[ptNum]), (pts[poly[edgeStart]], pts[poly[edgeEnd]]))
 			if ret is not False:
 				blocked=True
 				break
@@ -98,9 +99,9 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 			if holePtNum == holeInd: continue
 			if nextPtNum == holeInd: continue
 			ret = overlap.LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
-			#print ptIndex, holeInd, holePtNum, nextPtNum, ret
+			#print(ptIndex, holeInd, holePtNum, nextPtNum, ret)
 			if ret is not False:
-				#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
+				#print((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
 				blocked=True
 		
 		#Check if it would be blocked by a future hole
@@ -116,12 +117,12 @@ def PointVisibility(pts, poly, holeInd, holeNum, holes, getSingleResult = 0):
 				if holePtNum == holeInd: continue
 				if nextPtNum == holeInd: continue
 				ret = overlap.LineSegmentIntersection((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
-				#print ptIndex, holeInd, holePtNum, nextPtNum, ret
+				#print(ptIndex, holeInd, holePtNum, nextPtNum, ret)
 				if ret is not False:
-					#print (ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum])
+					#print((ptCoord, pts[ptNum]), (holeShape[holePtNum], holeShape[nextPtNum]))
 					blocked=True
 			
-		#print ptNum, blocked
+		#print(ptNum, blocked)
 		if not blocked:
 			dist = ((ptCoord[0] - pts[poly[ptIndex]][0])**2.+(ptCoord[1] - pts[poly[ptIndex]][1])**2.)**0.5
 			visiblePoints.append((dist, ptIndex))
@@ -167,21 +168,21 @@ def MergeHolesIntoOuterPoly(poly, holes):
 		for holdPtNum, holeCoord in enumerate(hole):
 
 			visible = PointVisibility(pts, workingPoly, holdPtNum, holeNum, holes, True)
-			#print "vis", holeCoord, visible
+			#print("vis", holeCoord, visible)
 			if len(visible) > 0:
 				if foundCut is None:
 					foundCut = (visible[0][1], holdPtNum, visible[0][0])
 				elif visible[0][0] < foundCut[2]:
 					#Use nearer point
 					foundCut = (visible[0][1], holdPtNum, visible[0][0])
-					#print "better cut found", holeNum, holdPtNum, visible
+					#print("better cut found", holeNum, holdPtNum, visible)
 
 		if foundCut is None:
 			raise RuntimeError("Failed to join hole to other polygon")
 
 		workingPoly, pts = MergeHoleIntoOuter(workingPoly, pts, foundCut[0], hole, foundCut[1])
-		#print "wp", workingPoly
-		#print "pts", pts
+		#print("wp", workingPoly)
+		#print("pts", pts)
 
 	return workingPoly, pts
 
@@ -214,7 +215,7 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 			ang = CalcTriangleAng(pts, angleCache, workingPoly[prevNode], workingPoly[nextNode], workingPoly[nodeNum])
 			if ang >= math.pi:
 				continue
-			#print prevNode, nodeNum, nextNode, ang
+			#print(prevNode, nodeNum, nextNode, ang)
 
 			#Check if nodes are in this ear
 			foundNode = False
@@ -231,12 +232,12 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 				if triHit:
 					foundNode = True
 
-				#print "chk", nodeNum2, chk1, chk2, chk3
+				#print("chk", nodeNum2, chk1, chk2, chk3)
 			if foundNode:
 				continue
 		
 			nodeFound = True
-			#print "Found ear at node", nodeNum
+			#print("Found ear at node", nodeNum)
 
 			#Store ear
 			if nodeOrder:
@@ -248,16 +249,16 @@ def EarClippingNoHoles(workingPoly, pts, nodeOrder = 1, debug = 0):
 			workingPoly.pop(nodeNum)
 
 			if debug:
-				print workingPoly
+				print(workingPoly)
 				import matplotlib.pyplot as plt
 				import numpy as np
 				ptsArr = np.array(pts)
-				print ptsArr[workingPoly,:]
+				print(ptsArr[workingPoly,:])
 				plt.clf()
 				for tri in triangles:
 					triTemp = list(tri[:])
 					triTemp.append(tri[0])
-					#print triTemp
+					#print(triTemp)
 					#plt.plot(ptsArr[triTemp,0], ptsArr[triTemp,1],'r-')
 				plt.plot(ptsArr[workingPoly,0], ptsArr[workingPoly,1],'g-')
 				plt.show()
@@ -336,25 +337,25 @@ if __name__=="__main__":
 	if 1:
 		startTime = time.time()
 		pts, triangles = EarClipping(outer, holes, nodeOrder)
-		print "Ear clipping done in", time.time() - startTime, "sec"
+		print("Ear clipping done in", time.time() - startTime, "sec")
 	else:
 		startTime = time.time()
 		workingPoly, pts = MergeHolesIntoOuterPoly(outer, holes)
-		print "MergeHolesIntoOuterPoly done in", time.time() - startTime, "sec"
+		print("MergeHolesIntoOuterPoly done in", time.time() - startTime, "sec")
 
 		startTime = time.time()
 		pts, triangles = EarClippingNoHoles(workingPoly, pts, nodeOrder)
-		print "EarClippingNoHoles done in", time.time() - startTime, "sec"
+		print("EarClippingNoHoles done in", time.time() - startTime, "sec")
 
 	if 1:
 		#Use delaunay flipping to improve mesh quality
 		import pyshull
 		startTime = time.time()
 		triangles = pyshull.FlipTriangles(pts, triangles)
-		print "Mesh flipping done in", time.time() - startTime, "sec"
+		print("Mesh flipping done in", time.time() - startTime, "sec")
 
 	if 1:
-		print triangles
+		print(triangles)
 
 		import matplotlib.pyplot as plt
 		ptsArr = np.array(pts)

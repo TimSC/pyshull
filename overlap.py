@@ -1,6 +1,7 @@
 
 #Polygon, point and line overlap functions
-#by Tim Sheerman-Chase, 2014
+#by Tim Sheerman-Chase, 2014-2016
+from __future__ import print_function
 
 def PointInSideTriangle(pt, tri, winding = None):
 	if winding is None:
@@ -24,7 +25,7 @@ def Check1DOverlap(range1, range2):
 	max1 = max(range1)
 	min2 = min(range2)
 	max2 = max(range2)
-	#print min1, max1, min2, max2
+	#print(min1, max1, min2, max2)
 	if min1 >= min2 and min1 <= max2: return True
 	if max1 >= min2 and max1 <= max2: return True
 	if min1 <= min2 and max1 >= max2: return True
@@ -43,7 +44,7 @@ def GetWindingDirection(tri2):
 
 def CheckFirstTriangleIsContained(tri1, tri2):
 	crossProd = GetWindingDirection(tri2)
-	#print "winding", crossProd
+	#print("winding", crossProd)
 	
 	r1 = PointInSideTriangle(tri1[0], tri2, crossProd)
 	if r1 is False: return False
@@ -54,9 +55,9 @@ def CheckFirstTriangleIsContained(tri1, tri2):
 
 def CheckResult(expected, actual, description):
 	if expected == actual:
-		print "Test OK", description
+		print("Test OK", description)
 	else:
-		print "Test Failed:", description
+		print("Test Failed:", description)
 	return expected == actual
 
 def ReorderTriangleThenTest(tri1, tri2, swap, expected, description):
@@ -75,10 +76,9 @@ def RunTriangleTestBattery(tri1, tri2, expected, description):
 	
 #*************** Line segment collisions *********************
 
-
 def line(p1, p2):
-	p1 = map(float, p1)
-	p2 = map(float, p2)
+	p1 = list(map(float, p1))
+	p2 = list(map(float, p2))
 	A = (p1[1] - p2[1])
 	B = (p2[0] - p1[0])
 	C = (p1[0]*p2[1] - p2[0]*p1[1])
@@ -143,11 +143,11 @@ def DoTrianglesCollide(tri1, tri2):
 
 	#Check for entirely contained triangle
 	contained = CheckFirstTriangleIsContained(tri1, tri2)
-	#print "contained1", contained
+	#print("contained1", contained)
 	if contained: return True
 
 	contained = CheckFirstTriangleIsContained(tri2, tri1)
-	#print "contained2", contained
+	#print("contained2", contained)
 	if contained: return True
 
 	return False
@@ -189,10 +189,10 @@ def LineSegmentIntersection(L1in, L2in):
 	if L1in[1] == L2in[1]: return True
 
 	if Check1DOverlap(L1x, L2x) is False:
-		#print "fail x"
+		#print("fail x")
 		return False
 	if Check1DOverlap(L1y, L2y) is False:
-		#print "fail y"
+		#print("fail y")
 		return False
 
 	#Find intersection assuming lines are infinitely long

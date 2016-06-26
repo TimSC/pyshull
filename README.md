@@ -5,7 +5,9 @@ pyshull.py : S-Hull Delaunay triangulation implemented in pure Python. Based on 
 
 earclipping.py : Based on Triangulation by Ear Clipping by David Eberly. Triangularisation of a simple polygon (no self intersections) with holes.
 
-Copyright (c) 2014, Tim Sheerman-Chase
+Tested on Python 2.7 and 3.4
+
+Copyright (c) 2014-2016, Tim Sheerman-Chase
 
 All rights reserved.
 

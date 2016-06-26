@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 
 def CalcDist(a, b):
@@ -52,7 +53,7 @@ def FindSmallestCircumCircle(pts, firstIndex, secondIndex):
 			if sqrtx > 0.:
 				diam = 0.5*a*b*c/sqrtx
 				diams.append((diam, ptNum))
-				#print ptNum, a, b, c
+				#print(ptNum, a, b, c)
 			else:
 				#Prevent division by zero
 				diams.append((float("inf"), ptNum))
@@ -84,23 +85,23 @@ def RightHandedCheck(pts, pt1, pt2, pt3):
 	return vec21[0] * vec23[1] - vec21[1] * vec23[0]
 
 def FormTriangles(pts, seedTriangle, orderToAddPts):
-	#print pts
-	#print seedTriangle
-	#print orderToAddPts
+	#print(pts)
+	#print(seedTriangle)
+	#print(orderToAddPts)
 	
 	triangles = [seedTriangle]
 	hull = seedTriangle[:]
 
 	for ptToAdd in orderToAddPts:
-		#print "adding point", ptToAdd, pts[ptToAdd]
+		#print("adding point", ptToAdd, pts[ptToAdd])
 
 		#Check which hull faces are visible
 		visInd = []
 		visList = []
 		for hInd in range(len(hull)):
-			#print pts[hull[hInd]], pts[hull[(hInd+1) % len(hull)]]
+			#print(pts[hull[hInd]], pts[hull[(hInd+1) % len(hull)]])
 			vis = RightHandedCheck(pts, hull[hInd], hull[(hInd+1) % len(hull)], ptToAdd)
-			#print "vis", hInd, vis
+			#print("vis", hInd, vis)
 			visList.append(vis)
 			if vis <= 0.:
 				visInd.append(hInd)
@@ -140,14 +141,14 @@ def FormTriangles(pts, seedTriangle, orderToAddPts):
 		iterating = True
 		while iterating:
 			tri = (hull[cursor], ptToAdd, hull[(cursor+1)%len(hull)])
-			#print "Found triangle", tri
+			#print("Found triangle", tri)
 			triangles.append(tri)
 
 			if cursor == lastSide:
 				iterating = False
 			cursor = (cursor + 1) % len(hull)
 
-		#print "newhull" , newHull
+		#print("newhull" , newHull)
 		hull = newHull
 	return hull, triangles
 
@@ -177,8 +178,8 @@ def CalcTriangleAng(pts, angleCache, pt1, pt2, pt3):
 	if dotProd > 1.: dotProd = 1.
 	if dotProd < -1.: dotProd = -1.
 
-	#print crossProd < 0., crossProd
-	#print math.asin(crossProd), math.acos(dotProd), cosAng
+	#print(crossProd < 0., crossProd)
+	#print(math.asin(crossProd), math.acos(dotProd), cosAng)
 	if crossProd < 0.:
 		#Reflex angle detected
 		trigAng = 2. * math.pi - math.acos(dotProd)
@@ -195,10 +196,10 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		raise RuntimeError("Left hand triangle detected", triOrdered1)
 	if debugMode and RightHandedCheck(pts, *triOrdered2) < 0.:
 		raise RuntimeError("Left hand triangle detected", triOrdered2)
-	#print "triOrdered1", triOrdered1
-	#print "triOrdered2", triOrdered2
+	#print("triOrdered1", triOrdered1)
+	#print("triOrdered2", triOrdered2)
 	quad = triOrdered1[0], triOrdered1[2], triOrdered2[2], triOrdered2[1]
-	#print "quad", quad
+	#print("quad", quad)
 
 	try:
 		t1 = CalcTriangleAng(pts, angleCache, quad[0], quad[2], quad[1])
@@ -210,9 +211,9 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 	angTotal = t1 + t3
 	flipForDelaunay = angTotal > math.pi
 
-	#print ang1, ang2, angTotal
+	#print(ang1, ang2, angTotal)
 	if flipDegenerateTri or flipForDelaunay:
-		#print "Flip possibly required", angTotal, triOrdered1, triOrdered2
+		#print("Flip possibly required", angTotal, triOrdered1, triOrdered2)
 		try:
 			t2 = CalcTriangleAng(pts, angleCache, quad[1], quad[3], quad[2])
 			t4 = CalcTriangleAng(pts, angleCache, quad[3], quad[1], quad[0])
@@ -225,23 +226,23 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 			return False, triOrdered1, triOrdered2
 
 		if t2 == math.pi or t4 == math.pi:
-			#print t1, t2, t3, t4
+			#print(t1, t2, t3, t4)
 			#Flipping would create triangle of zero size
 			return False, triOrdered1, triOrdered2
 
 		flipTri1 = (triOrdered2[1], triOrdered1[2], triOrdered1[0])
 		flipTri2 = (triOrdered1[2], triOrdered2[1], triOrdered1[1])
-		#print flipTri1, flipTri2
+		#print(flipTri1, flipTri2)
 		flipAngTotal = t2 + t4
-		#print "Angle when flipped", flipAngTotal
+		#print("Angle when flipped", flipAngTotal)
 				
 		if flipForDelaunay and flipAngTotal >= angTotal:
-			#print "Abort flip", flipAngTotal
+			#print("Abort flip", flipAngTotal)
 			#No improvement when flipped, so abort flip
 			return False, triOrdered1, triOrdered2
 
-		#print flipTri1, RightHandedCheck(pts, *flipTri1)
-		#print flipTri2, RightHandedCheck(pts, *flipTri2)
+		#print(flipTri1, RightHandedCheck(pts, *flipTri1))
+		#print(flipTri2, RightHandedCheck(pts, *flipTri2))
 
 		rhCheck1, rhCheck2 = 0., 0.
 		if debugMode:
@@ -254,7 +255,7 @@ def CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCach
 		if rhCheck2 < 0.:
 			raise RuntimeError("Left hand triangle detected", flipTri2)
 
-		#print "flipped", flipTri1, flipTri2, flipDegenerateTri, flipForDelaunay
+		#print("flipped", flipTri1, flipTri2, flipDegenerateTri, flipForDelaunay)
 		return True, flipTri1, flipTri2
 
 	return False, triOrdered1, triOrdered2
@@ -306,7 +307,7 @@ def FlipTriangles(pts, triangles, nodeOrdering = None):
 	for triNum, tri in enumerate(triangles):
 		AddTriangleToCommonEdges(sharedEdges, triangles, triNum)
 
-	#print sharedEdges
+	#print(sharedEdges)
 	angleCache = {}
 	distCache = {}
 	previousConfigurations = [triangles[:]]
@@ -314,7 +315,7 @@ def FlipTriangles(pts, triangles, nodeOrdering = None):
 	running = True
 	while running:
 		#Since we are modifying the edge structure, take a static copy of keys
-		sharedEdgeKeys = sharedEdges.keys()
+		sharedEdgeKeys = list(sharedEdges.keys())
 
 		count = 0
 
@@ -328,15 +329,15 @@ def FlipTriangles(pts, triangles, nodeOrdering = None):
 
 			commonEdge = HasCommonEdge(tri1, tri2)
 			if commonEdge is None:
-				#print "err", tri1, tri2
+				#print("err", tri1, tri2)
 				raise Exception("Expected common edge")
 			triInd1, triInd2 = commonEdge
-			#print "original ind", tri1, tri2
+			#print("original ind", tri1, tri2)
 
 			#Reorder nodes so the common edge is the first two verticies
 			triOrdered1 = (tri1[triInd1[0]], tri1[triInd1[1]], tri1[triInd1[2]]) #1st and 2nd are common edge
 			triOrdered2 = (tri2[triInd2[0]], tri2[triInd2[2]], tri2[triInd2[1]]) #1st and 3rd are common edge
-			#print triOrdered1, triOrdered2
+			#print(triOrdered1, triOrdered2)
 
 			#Check if triangle flip is needed
 			flipNeeded, ft1, ft2 = CheckAndFlipTrianglePair(pts, triOrdered1, triOrdered2, angleCache, distCache)
@@ -354,8 +355,8 @@ def FlipTriangles(pts, triangles, nodeOrdering = None):
 				count += 1
 	
 				if 0:
-					print tri1, tri2
-					print [pts[c] for c in tri1], [pts[c] for c in tri2]
+					print(tri1, tri2)
+					print([pts[c] for c in tri1], [pts[c] for c in tri2])
 
 					import matplotlib.pyplot as plt
 					import numpy as np
@@ -508,7 +509,7 @@ if __name__ == "__main__":
 
 	startTime = time.time()
 	triangles = PySHull(pts)
-	print "Processed", n, "points in", time.time() - startTime, "sec"
+	print("Processed", n, "points in", time.time() - startTime, "sec")
 
 	for tri in triangles:
 		tri2 = list(tri[:])
